@@ -70,9 +70,9 @@ export async function GET() {
 
     // Simulated Session
     const session = {
-      instansi: "Pemerintah Provinsi Jawa Barat",
-      kode: "3200",
-      kategori: "Provinsi"
+      instansi: "Pemerintah Kabupaten Ciamis",
+      kode: "3207",
+      kategori: "Kab/Kota"
     };
 
     return NextResponse.json({

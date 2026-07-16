@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Search, X, Loader2, ChevronDown, ChevronUp, ListChecks } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Plus, Edit2, Trash2, Search, X, Loader2, ChevronDown, ChevronUp, ListChecks, Upload, Download, FileSpreadsheet, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { USERS } from "@/lib/mock-data";
 
 interface Aspek {
@@ -29,8 +29,25 @@ export function IndikatorCrudView({
   const [search, setSearch] = useState("");
   const [showIndikatorModal, setShowIndikatorModal] = useState(false);
   const [showAspekModal, setShowAspekModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    message: string;
+    result?: {
+      totalRows: number;
+      aspekCreated: number;
+      aspekUpdated: number;
+      indikatorCreated: number;
+      errors: { row: number; message: string }[];
+    };
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [aspeks, setAspeks] = useState<Aspek[]>([]);
   const [indikators, setIndikators] = useState<Indikator[]>([]);
@@ -88,6 +105,69 @@ export function IndikatorCrudView({
 
   function toggleAspek(id: string) {
     setOpenAspeks(prev => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  // === IMPORT HANDLERS ===
+  async function handleDownloadTemplate() {
+    setDownloadingTemplate(true);
+    try {
+      const res = await fetch("/api/indikator/template");
+      if (!res.ok) throw new Error("Gagal mengunduh template");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "template_import_indikator.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Gagal mengunduh template. Coba lagi.");
+    } finally {
+      setDownloadingTemplate(false);
+    }
+  }
+
+  function handleOpenImportModal() {
+    setImportFile(null);
+    setImportResult(null);
+    setShowImportModal(true);
+  }
+
+  function handleFileSelect(file: File) {
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+      alert("Format file tidak didukung. Gunakan file .xlsx atau .xls");
+      return;
+    }
+    setImportFile(file);
+    setImportResult(null);
+  }
+
+  async function handleImportSubmit() {
+    if (!importFile) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", importFile);
+      const res = await fetch("/api/indikator/import", { method: "POST", body: fd });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setImportResult({ success: true, message: json.message, result: json.result });
+        await fetchData(); // Refresh table
+      } else {
+        setImportResult({
+          success: false,
+          message: json.error || "Import gagal",
+          result: json.result,
+        });
+      }
+    } catch (err) {
+      setImportResult({ success: false, message: "Terjadi kesalahan jaringan. Coba lagi." });
+    } finally {
+      setImporting(false);
+    }
   }
 
   // === INDIKATOR HANDLERS ===
@@ -261,7 +341,7 @@ export function IndikatorCrudView({
           <p className="text-xs text-gray-500 mt-0.5">Kelola data aspek dan indikator penilaian mandiri</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input 
@@ -272,6 +352,20 @@ export function IndikatorCrudView({
               className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-full sm:w-64 transition-all"
             />
           </div>
+          <button
+            onClick={handleDownloadTemplate}
+            disabled={downloadingTemplate}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-all shadow-sm disabled:opacity-60"
+          >
+            {downloadingTemplate ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            Template Excel
+          </button>
+          <button
+            onClick={handleOpenImportModal}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 rounded-xl hover:bg-violet-100 transition-all shadow-sm"
+          >
+            <Upload size={14} /> Import Excel
+          </button>
           <button 
             onClick={handleAddAspek}
             className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm" 
@@ -409,6 +503,191 @@ export function IndikatorCrudView({
           </table>
         </div>
       </div>
+
+      {/* IMPORT MODAL */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+            onClick={() => { if (!importing) setShowImportModal(false); }}
+          />
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                  <FileSpreadsheet size={16} className="text-violet-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Import Indikator dari Excel</h3>
+                  <p className="text-[10px] text-gray-400">Upload file .xlsx sesuai template yang tersedia</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                disabled={importing}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Download Template CTA */}
+              <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                <Info size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs text-blue-700 font-semibold">Belum punya template?</p>
+                  <p className="text-[11px] text-blue-600 mt-0.5">Download template Excel terlebih dahulu, isi data, lalu upload di sini.</p>
+                </div>
+                <button
+                  onClick={handleDownloadTemplate}
+                  disabled={downloadingTemplate}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-all disabled:opacity-60"
+                >
+                  {downloadingTemplate ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                  Download
+                </button>
+              </div>
+
+              {/* Drop Zone */}
+              <div
+                className={`relative border-2 border-dashed rounded-xl transition-all cursor-pointer ${
+                  isDragOver
+                    ? "border-violet-400 bg-violet-50"
+                    : importFile
+                    ? "border-emerald-300 bg-emerald-50"
+                    : "border-gray-200 bg-gray-50 hover:border-violet-300 hover:bg-violet-50/40"
+                }`}
+                onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(false);
+                  const file = e.dataTransfer.files[0];
+                  if (file) handleFileSelect(file);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }}
+                />
+                <div className="flex flex-col items-center gap-3 py-8 px-6">
+                  {importFile ? (
+                    <>
+                      <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                        <FileSpreadsheet size={24} className="text-emerald-600" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-bold text-emerald-700">{importFile.name}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          {(importFile.size / 1024).toFixed(1)} KB — Klik untuk ganti file
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                        <Upload size={22} className="text-gray-400" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-semibold text-gray-600">Seret file ke sini atau klik untuk pilih</p>
+                        <p className="text-[11px] text-gray-400 mt-1">Mendukung format .xlsx dan .xls • Maks. 500 baris</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Import Result */}
+              {importResult && (
+                <div className={`rounded-xl border p-4 space-y-3 ${
+                  importResult.success
+                    ? "bg-emerald-50 border-emerald-200"
+                    : "bg-red-50 border-red-200"
+                }`}>
+                  <div className="flex items-start gap-2">
+                    {importResult.success
+                      ? <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                      : <AlertCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />}
+                    <p className={`text-xs font-semibold ${
+                      importResult.success ? "text-emerald-800" : "text-red-800"
+                    }`}>
+                      {importResult.message}
+                    </p>
+                  </div>
+
+                  {importResult.result && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { label: "Total Baris", value: importResult.result.totalRows, color: "bg-white border border-gray-200 text-gray-700" },
+                        { label: "Indikator Baru", value: importResult.result.indikatorCreated, color: "bg-emerald-100 text-emerald-700" },
+                        { label: "Aspek Baru", value: importResult.result.aspekCreated, color: "bg-blue-100 text-blue-700" },
+                        { label: "Error", value: importResult.result.errors.length, color: importResult.result.errors.length > 0 ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500" },
+                      ].map(stat => (
+                        <div key={stat.label} className={`rounded-lg p-2 text-center ${stat.color}`}>
+                          <p className="text-lg font-bold">{stat.value}</p>
+                          <p className="text-[10px] font-medium mt-0.5">{stat.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {importResult.result && importResult.result.errors.length > 0 && (
+                    <div className="max-h-28 overflow-y-auto space-y-1">
+                      <p className="text-[10px] font-bold text-red-700 uppercase tracking-wide">Detail Error:</p>
+                      {importResult.result.errors.map((err, i) => (
+                        <div key={i} className="text-[10px] text-red-600 bg-white rounded px-2 py-1 border border-red-100">
+                          <span className="font-bold">Baris {err.row}:</span> {err.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                disabled={importing}
+                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
+              >
+                {importResult?.success ? "Tutup" : "Batal"}
+              </button>
+              {!importResult?.success && (
+                <button
+                  type="button"
+                  onClick={handleImportSubmit}
+                  disabled={!importFile || importing}
+                  className="px-5 py-2 flex items-center gap-2 text-xs font-bold text-white rounded-xl shadow-sm hover:opacity-90 transition-all disabled:opacity-50"
+                  style={{ background: "linear-gradient(135deg,#5B21B6,#7C3AED)" }}
+                >
+                  {importing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  {importing ? "Mengimport..." : "Mulai Import"}
+                </button>
+              )}
+              {importResult?.success && (
+                <button
+                  type="button"
+                  onClick={() => { setImportFile(null); setImportResult(null); }}
+                  className="px-5 py-2 flex items-center gap-2 text-xs font-bold text-white rounded-xl shadow-sm hover:opacity-90 transition-all"
+                  style={{ background: "linear-gradient(135deg,#059669,#10B981)" }}
+                >
+                  <Upload size={14} /> Import Lagi
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* INDIKATOR MODAL */}
       {showIndikatorModal && (

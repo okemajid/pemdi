@@ -1,8 +1,15 @@
-import { LayoutDashboard, ClipboardList, Users, Shield, Building2, LogOut, BarChart3, ShieldCheck, Menu, ListTree, Activity } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, Shield, LogOut, BarChart3, ShieldCheck, Menu, ListTree, Activity } from "lucide-react";
 import { Page } from "@/lib/types";
-import { SESSION } from "@/lib/mock-data";
 
-export function Sidebar({ page, setPage, collapsed, setCollapsed }: { page: Page; setPage: (p: Page) => void; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
+interface CurrentUser {
+  nama: string;
+  role: string;
+  instansi: string;
+  kode?: string;
+  kategori?: string;
+}
+
+export function Sidebar({ page, setPage, collapsed, setCollapsed, currentUser }: { page: Page; setPage: (p: Page) => void; collapsed: boolean; setCollapsed: (v: boolean) => void; currentUser: CurrentUser }) {
   const nav = [
     { key: "dashboard" as Page, label: "Dashboard", icon: LayoutDashboard },
     { key: "penilaian" as Page, label: "Penilaian Mandiri", icon: ClipboardList },
@@ -11,7 +18,7 @@ export function Sidebar({ page, setPage, collapsed, setCollapsed }: { page: Page
     { key: "roles" as Page, label: "Manajemen Role", icon: Shield },
   ];
 
-  if (SESSION.role === "Super Admin") {
+  if (currentUser.role === "Super Admin") {
     nav.splice(2, 0, { key: "indikator_crud" as Page, label: "Manajemen Indikator", icon: ListTree });
     nav.push({ key: "log_activity" as Page, label: "Log Aktivitas", icon: Activity });
   }
@@ -35,8 +42,8 @@ export function Sidebar({ page, setPage, collapsed, setCollapsed }: { page: Page
       {!collapsed && (
         <div className="mx-3 my-2.5 rounded-lg px-3 py-2.5" style={{ background: "rgba(255,255,255,0.05)" }}>
           <p className="text-white/40 text-[9px] uppercase tracking-wider font-semibold">Instansi</p>
-          <p className="text-white/90 text-[11px] font-semibold leading-tight mt-0.5 truncate">{SESSION.instansi}</p>
-          <p className="text-white/40 text-[9px] mt-0.5">{SESSION.kode} · {SESSION.kategori}</p>
+          <p className="text-white/90 text-[11px] font-semibold leading-tight mt-0.5 truncate">{currentUser.instansi}</p>
+          <p className="text-white/40 text-[9px] mt-0.5">{currentUser.role}</p>
         </div>
       )}
 
@@ -58,11 +65,11 @@ export function Sidebar({ page, setPage, collapsed, setCollapsed }: { page: Page
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
-              {SESSION.nama.split(" ").map(w => w[0]).join("").slice(0, 2)}
+              {currentUser.nama.split(" ").map((w: string) => w[0]).join("").slice(0, 2)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-[11px] font-semibold truncate">{SESSION.nama}</p>
-              <p className="text-white/40 text-[9px] truncate">{SESSION.role}</p>
+              <p className="text-white text-[11px] font-semibold truncate">{currentUser.nama}</p>
+              <p className="text-white/40 text-[9px] truncate">{currentUser.role}</p>
             </div>
             <button onClick={() => setPage("landing")} className="text-white/30 hover:text-white/60 transition-colors"><LogOut size={13} /></button>
           </div>

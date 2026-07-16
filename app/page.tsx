@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Page, Aspek, Indikator } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { Page, Indikator } from "@/lib/types";
 import { SESSION } from "@/lib/mock-data";
 
 import { Sidebar } from "@/components/ui/Sidebar";
@@ -19,11 +19,48 @@ import { IndikatorCrudView } from "@/components/views/IndikatorCrudView";
 import { KriteriaCrudView } from "@/components/views/KriteriaCrudView";
 import { LogActivityView } from "@/components/views/LogActivityView";
 
+const SESSION_KEY = "pemdi_session";
+const SESSION_TTL_MS = 3 * 60 * 1000; // 3 menit
+
+function getStoredPage(): Page {
+  if (typeof window === "undefined") return "landing";
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return "landing";
+    const { page, timestamp } = JSON.parse(raw);
+    if (Date.now() - timestamp > SESSION_TTL_MS) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return "landing";
+    }
+    return page as Page;
+  } catch {
+    return "landing";
+  }
+}
+
 export default function App() {
-  const [page, setPage] = useState<Page>("landing");
+  const [page, setPageState] = useState<Page>("landing");
   const [collapsed, setCollapsed] = useState(false);
   const [detailIndikator, setDetailIndikator] = useState<Indikator | null>(null);
   const [kriteriaIndikator, setKriteriaIndikator] = useState<{ id: string; nama: string; no: string } | null>(null);
+
+  // Restore session on first render (client-side only)
+  useEffect(() => {
+    const stored = getStoredPage();
+    if (stored !== "landing" && stored !== "login") {
+      setPageState(stored);
+    }
+  }, []);
+
+  // Wrapper setPage yang juga menyimpan ke sessionStorage
+  function setPage(p: Page) {
+    setPageState(p);
+    if (p !== "landing" && p !== "login") {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ page: p, timestamp: Date.now() }));
+    } else {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  }
 
   const PAGE_META: Record<Page, { title: string; sub: string }> = {
     landing: { title: "", sub: "" },
@@ -47,7 +84,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
-      <Sidebar page={page} setPage={setPage} collapsed={collapsed} setCollapsed={setCollapsed} />
+      <Sidebar page={page} setPage={setPage} collapsed={collapsed} setCollapsed={setCollapsed} currentUser={SESSION} />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <TopBar title={title} sub={sub} />

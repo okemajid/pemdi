@@ -1,8 +1,35 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen } from "lucide-react";
 import { Page, Maturitas } from "@/lib/types";
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
 
 export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
+  const [statsData, setStatsData] = useState({
+    totalInstansi: 0,
+    totalIndikator: 0,
+    totalDokumen: 0,
+    avgIndeks: "0.00"
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/landing");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            setStatsData(json.data);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch landing stats", error);
+      }
+    }
+    fetchStats();
+  }, []);
+
   const features = [
     { icon: ClipboardList, title: "Penilaian Mandiri", desc: "Lakukan penilaian maturitas digital secara mandiri berdasarkan indikator PEMDI yang komprehensif." },
     { icon: Upload, title: "Upload Bukti Dukung", desc: "Unggah dokumen pendukung untuk setiap kriteria dan level maturitas yang diampu OPD Anda." },
@@ -11,10 +38,10 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
   ];
 
   const stats = [
-    { label: "Pemerintah Daerah", value: "514+", sub: "terdaftar" },
-    { label: "Indikator Penilaian", value: "87", sub: "terverifikasi" },
-    { label: "Dokumen Terunggah", value: "24.6K", sub: "tahun 2025" },
-    { label: "Rata-rata Indeks", value: "3.42", sub: "skala 5.0" },
+    { label: "OPD Terdaftar", value: statsData.totalInstansi.toString(), sub: "Pemerintah Kab. Ciamis" },
+    { label: "Indikator Penilaian", value: statsData.totalIndikator.toString(), sub: "terverifikasi" },
+    { label: "Dokumen Terunggah", value: statsData.totalDokumen.toString(), sub: "bukti dukung" },
+    { label: "Rata-rata Indeks", value: statsData.avgIndeks, sub: "skala 5.0" },
   ];
 
   return (
@@ -47,14 +74,14 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
         <div className="relative max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-white/80 text-xs font-semibold mb-8">
             <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            Sistem Resmi Kemendagri — Tahun Anggaran 2025
+            Sistem Resmi Pemerintah Kabupaten Ciamis — Tahun Anggaran 2025
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
             Penilaian Mandiri<br />
-            <span style={{ background: "linear-gradient(90deg, #60A5FA, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Pemerintah Digital</span>
+            <span style={{ background: "linear-gradient(90deg, #60A5FA, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Pemerintah Digital Ciamis</span>
           </h1>
           <p className="text-white/60 text-base max-w-2xl mx-auto leading-relaxed mb-8">
-            Platform terpadu untuk mengukur, memantau, dan meningkatkan maturitas transformasi digital pemerintah daerah di seluruh Indonesia berdasarkan standar PEMDI.
+            Platform terpadu untuk mengukur, memantau, dan meningkatkan maturitas transformasi digital di lingkungan Pemerintah Kabupaten Ciamis berdasarkan standar PEMDI.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button onClick={() => setPage("login")} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white rounded-xl transition-all hover:scale-105" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
@@ -132,8 +159,8 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
 
       <footer className="bg-gray-900 py-6">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-gray-500 text-xs">© 2025 Kementerian Dalam Negeri RI — Sistem PEMDI v1.0</p>
-          <p className="text-gray-600 text-xs">Direktorat Jenderal Bina Administrasi Kewilayahan</p>
+          <p className="text-gray-500 text-xs">© 2025 Pemerintah Kabupaten Ciamis — Sistem PEMDI v1.0</p>
+          <p className="text-gray-600 text-xs">Dinas Komunikasi dan Informatika Kabupaten Ciamis</p>
         </div>
       </footer>
     </div>

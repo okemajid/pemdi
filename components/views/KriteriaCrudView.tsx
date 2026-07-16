@@ -146,18 +146,18 @@ export function KriteriaCrudView({
   }
 
   return (
-    <div className="min-h-full bg-[#1a1d24] text-gray-300 p-6" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-full bg-white text-gray-800 p-6" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Back button & header */}
       <div className="mb-5">
         <button
           onClick={() => setPage("indikator_crud")}
-          className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors mb-3"
+          className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 transition-colors mb-3"
         >
           <ArrowLeft size={14} /> Kembali ke Manajemen Indikator
         </button>
-        <div className="bg-[#242832] rounded-xl px-5 py-3.5 border border-gray-700">
+        <div className="bg-gray-50 rounded-xl px-5 py-3.5 border border-gray-200">
           <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Indikator</p>
-          <p className="text-sm font-bold text-gray-200">{indikator.no} — {indikator.nama}</p>
+          <p className="text-sm font-bold text-gray-900">{indikator.no} — {indikator.nama}</p>
           <p className="text-[11px] text-gray-500 mt-0.5">Kelola data dukung / kriteria per level kematangan</p>
         </div>
       </div>
@@ -167,9 +167,9 @@ export function KriteriaCrudView({
         {[1, 2, 3, 4, 5].map((level) => {
           const levelKriteria = kriterias.filter((k) => k.level === level);
           return (
-            <div key={level} className="bg-[#242832] rounded-xl border border-gray-700 overflow-hidden">
+            <div key={level} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               {/* Level header */}
-              <div className="flex items-center justify-between px-4 py-3 bg-[#363b47] border-b border-gray-700">
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
                 <div className="flex items-center gap-3">
                   <div
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0"
@@ -178,13 +178,13 @@ export function KriteriaCrudView({
                     {level}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-200">{LEVEL_LABELS[level]}</p>
+                    <p className="text-xs font-bold text-gray-900">{LEVEL_LABELS[level]}</p>
                     <p className="text-[10px] text-gray-400">PM : {levelKriteria.length} data dukung</p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleAdd(level)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                 >
                   <Plus size={12} /> Tambah Data Dukung
                 </button>
@@ -193,36 +193,36 @@ export function KriteriaCrudView({
               {/* Kriteria rows */}
               {loading ? (
                 <div className="py-6 text-center">
-                  <Loader2 className="animate-spin mx-auto text-blue-400" size={20} />
+                  <Loader2 className="animate-spin mx-auto text-blue-500" size={20} />
                 </div>
               ) : levelKriteria.length === 0 ? (
-                <div className="py-4 px-4 text-center text-gray-500 italic text-xs">
+                <div className="py-4 px-4 text-center text-gray-400 italic text-xs">
                   Belum ada data dukung di level ini
                 </div>
               ) : (
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-700/50 text-gray-400 bg-[#2a2f3a]">
-                      <th className="py-2 px-4 font-normal text-left w-10">No</th>
-                      <th className="py-2 px-4 font-normal text-left">Deskripsi Data Dukung</th>
-                      <th className="py-2 px-4 font-normal text-center w-20">Value</th>
-                      <th className="py-2 px-4 font-normal text-center w-20">Status</th>
-                      <th className="py-2 px-4 font-normal text-center w-24">Aksi</th>
+                    <tr className="border-b border-gray-100 text-gray-500 bg-gray-50">
+                      <th className="py-2 px-4 font-semibold text-left w-10">No</th>
+                      <th className="py-2 px-4 font-semibold text-left">Deskripsi Data Dukung</th>
+                      <th className="py-2 px-4 font-semibold text-center w-16">Value</th>
+                      <th className="py-2 px-4 font-semibold text-center w-16">Status</th>
+                      <th className="py-2 px-4 font-semibold text-center w-24">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {levelKriteria.map((k, idx) => (
-                      <tr key={k.id} className="border-b border-[#2a2f3a] hover:bg-[#363c4a] transition-colors">
+                      <tr key={k.id} className="border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors">
                         <td className="py-3 px-4 text-center text-gray-400">{idx + 1}</td>
-                        <td className="py-3 px-4 text-gray-300 leading-relaxed pr-4">{k.deskripsi}</td>
-                        <td className="py-3 px-4 text-center font-bold text-gray-200">{k.bobot}</td>
+                        <td className="py-3 px-4 text-gray-700 leading-relaxed pr-4">{k.deskripsi}</td>
+                        <td className="py-3 px-4 text-center font-semibold text-gray-800">{k.bobot}</td>
                         <td className="py-3 px-4 text-center">
                           {k.status === "uploaded" ? (
-                            <span className="text-[10px] bg-green-900/50 text-green-400 border border-green-800 px-2 py-1 rounded-full">
+                            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-bold">
                               Selesai
                             </span>
                           ) : (
-                            <span className="text-[10px] bg-red-900/50 text-red-400 border border-red-800 px-2 py-1 rounded-full">
+                            <span className="text-[10px] bg-red-50 text-red-500 border border-red-200 px-2.5 py-1 rounded-full font-bold">
                               Belum Upload
                             </span>
                           )}
@@ -231,14 +231,14 @@ export function KriteriaCrudView({
                           <div className="flex gap-2 justify-center">
                             <button
                               onClick={() => handleEdit(k)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/30 transition-all"
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                               title="Edit"
                             >
                               <Edit2 size={13} />
                             </button>
                             <button
                               onClick={() => handleDelete(k.id)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-900/30 transition-all"
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
                               title="Hapus"
                             >
                               <Trash2 size={13} />

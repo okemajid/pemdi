@@ -75,8 +75,10 @@ export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
         <div className="absolute right-0 bottom-0 opacity-5 text-white" style={{ fontSize: 120, lineHeight: 1, fontWeight: 900, userSelect: "none" }}>PEMDI</div>
         <div>
           <p className="text-white/50 text-[10px] uppercase tracking-widest font-semibold">Sistem Penyimpanan Bukti Dukung Pemerintah Digital Kabupaten Ciamis</p>
-          <h2 className="text-white font-extrabold text-lg mt-1">{SESSION.instansi}</h2>
-          <p className="text-white/40 text-xs mt-0.5">Kode: {SESSION.kode} · {SESSION.kategori}</p>
+          {/* <h2 className="text-white font-extrabold text-lg mt-1">{SESSION.instansi}</h2>
+          <p className="text-white/40 text-xs mt-0.5">Kode: {SESSION.kode} · {SESSION.kategori}</p> */}
+          <h2 className="text-white font-extrabold text-lg mt-1">Pemerintah Kabupaten Ciamis</h2>
+          <p className="text-white/40 text-xs mt-0.5">Kode: 3207 . Kab/Kota</p>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-center">

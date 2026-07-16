@@ -94,7 +94,7 @@ export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Pa
               <th className="py-3 px-4 font-normal text-center w-24">Tipe</th>
               <th className="py-3 px-4 font-normal text-center w-20">Bobot</th>
               <th className="py-3 px-4 font-normal text-center w-40">Progres Upload</th>
-              <th className="py-3 px-4 font-normal text-center w-24">#</th>
+              <th className="py-3 px-4 font-normal text-center w-40">#</th>
             </tr>
           </thead>
           <tbody>
