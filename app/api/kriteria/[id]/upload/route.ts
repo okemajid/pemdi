@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from "next/server";
+import { query } from "@/lib/db";
+import fs from "fs";
+import path from "path";
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    const indikatorId = formData.get("indikatorId") as string;
+
+    if (!id || !file) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Create the directory if it doesn't exist
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "indikator", indikatorId);
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Save the file
+    const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+    const filePath = path.join(uploadDir, fileName);
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(filePath, buffer);
+
+    const dbFilePath = `/uploads/indikator/${indikatorId}/${fileName}`;
+
+    await query(
+      `UPDATE kriteria SET status = 'uploaded', file = ? WHERE id = ?`,
+      [dbFilePath, id]
+    );
+
+    return NextResponse.json({ success: true, file: dbFilePath });
+  } catch (error) {
+    console.error("Error uploading kriteria:", error);
+    return NextResponse.json({ error: "Failed to upload kriteria" }, { status: 500 });
+  }
+}
