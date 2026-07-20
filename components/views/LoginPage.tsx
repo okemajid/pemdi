@@ -45,7 +45,7 @@ export function LoginPage({ setPage }: { setPage: (p: Page) => void }) {
           </div>
         </div>
 
-        <p className="text-white/20 text-xs">© 2025 Kementerian Dalam Negeri RI</p>
+        <p className="text-white/20 text-xs">© 2026 Pemerintah Kabupaten Ciamis</p>
       </div>
 
       {/* Right panel */}

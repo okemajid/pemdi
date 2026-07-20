@@ -159,7 +159,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
 
       <footer className="bg-gray-900 py-6">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-gray-500 text-xs">© 2025 Pemerintah Kabupaten Ciamis — Sistem PEMDI v1.0</p>
+          <p className="text-gray-500 text-xs">© 2026 Pemerintah Kabupaten Ciamis — Sistem PEMDI v1.0</p>
           <p className="text-gray-600 text-xs">Dinas Komunikasi dan Informatika Kabupaten Ciamis</p>
         </div>
       </footer>
