@@ -94,11 +94,11 @@ export function LoginPage({ setPage }: { setPage: (p: Page) => void }) {
             </button>
           </div>
 
-          <div className="mt-6 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+          {/* <div className="mt-6 p-3 bg-blue-50 border border-blue-100 rounded-xl">
             <p className="text-[10px] text-blue-700 font-semibold mb-1">Demo akun tersedia:</p>
             <p className="text-[10px] text-blue-600">Super Admin: admin@pemdi.go.id</p>
             <p className="text-[10px] text-blue-600">Password: password123</p>
-          </div>
+          </div> */}
 
           <p className="mt-6 text-center text-xs text-gray-400">
             Belum punya akun?{" "}
