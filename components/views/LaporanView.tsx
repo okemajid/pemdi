@@ -122,7 +122,7 @@ export function LaporanView() {
                 
                 return (
                   <tr key={ind.id} className={`border-b border-gray-50 hover:bg-blue-50/20 ${i % 2 === 0 ? "" : "bg-gray-50/30"}`}>
-                    <td className="px-4 py-3 font-mono font-bold text-blue-700">{ind.no}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-blue-700">{i + 1}</td>
                     <td className="px-4 py-3 font-medium text-gray-800 max-w-[200px]"><span className="truncate block">{ind.nama}</span></td>
                     <td className="px-4 py-3 text-gray-500">{aspeks.find(a => a.id === ind.aspekId)?.nama.split(" ").slice(0, 2).join(" ")}</td>
                     <td className="px-4 py-3 font-extrabold text-gray-900">{ind.bobot} %</td>
@@ -145,6 +145,22 @@ export function LaporanView() {
                 </tr>
               )}
             </tbody>
+            {aspeks.flatMap(a => a.indikators).length > 0 && (
+              <tfoot>
+                <tr className="bg-gray-100 border-t-2 border-gray-200">
+                  <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-700 uppercase text-[10px] tracking-wide">
+                    Total
+                  </td>
+                  <td className="px-4 py-3 font-extrabold text-blue-800">
+                    {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.bobot || 0), 0)} %
+                  </td>
+                  <td className="px-4 py-3 font-extrabold text-blue-800">
+                    {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.nilaiCapaian || 0), 0).toFixed(1)}
+                  </td>
+                  <td colSpan={2} className="px-4 py-3"></td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

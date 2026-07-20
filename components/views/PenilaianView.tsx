@@ -22,18 +22,11 @@ export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Pa
           const aspeks: Aspek[] = await resAspek.json();
           const indikators: Indikator[] = await resIndikator.json();
           
-          // Initialize mock kriteria for UI purposes since DB doesn't have kriteria yet
-          // In a real app, kriteria would also be fetched from the DB
-          const mockKriteria = [
-            { level: 1, label: "Inisiasi", bobot: 0.1, status: "uploaded", deskripsi: "Mock kriteria level 1" },
-            { level: 2, label: "Emerging", bobot: 0.15, status: "empty", deskripsi: "Mock kriteria level 2" },
-          ];
-
           // Group indikators by aspect
           aspeks.forEach(a => {
             a.indikators = indikators.filter(i => i.aspekId === a.id).map(i => ({
               ...i,
-              kriteria: mockKriteria as any
+              kriteria: (i as any).kriteria || []
             }));
           });
 
@@ -105,13 +98,13 @@ export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Pa
                 <React.Fragment key={aspek.id}>
                   {/* Aspect Row */}
                   <tr 
-                    className="bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors border-b border-gray-200"
+                    className="bg-blue-50/50 cursor-pointer hover:bg-blue-100/50 transition-colors border-b border-blue-100"
                     onClick={() => toggleAspek(aspek.id)}
                   >
-                    <td colSpan={3} className="py-3 px-4 text-sm text-gray-900 font-medium">
+                    <td colSpan={3} className="py-3 px-4 text-sm text-blue-900 font-semibold">
                       Aspek {aspek.no} {aspek.nama}
                     </td>
-                    <td className="py-3 px-4 text-center text-sm text-gray-900 font-medium">
+                    <td className="py-3 px-4 text-center text-sm text-blue-900 font-semibold">
                       {aspek.bobot} %
                     </td>
                     <td colSpan={2} className="py-3 px-4 text-right">

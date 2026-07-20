@@ -23,12 +23,33 @@ export async function GET(req: NextRequest) {
 
     sql += ` ORDER BY CAST(SUBSTRING_INDEX(i.no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(i.no, '.', -1) AS UNSIGNED)`;
 
-    const indikators = await query(sql, params);
+    const indikators = await query(sql, params) as any[];
+    
+    // Fetch all kriteria
+    const kriteriaRows = await query(`
+      SELECT k.id, k.indikator_id, k.level, k.label, k.bobot, k.deskripsi, k.status, b.status as upload_status
+      FROM kriteria k
+      LEFT JOIN bukti_dukung b ON k.id = b.kriteria_id
+    `) as any[];
+
+    const kriteriaMap = new Map();
+    kriteriaRows.forEach(k => {
+      if (!kriteriaMap.has(k.indikator_id)) kriteriaMap.set(k.indikator_id, []);
+      kriteriaMap.get(k.indikator_id).push({
+        id: k.id,
+        level: k.level,
+        label: k.label,
+        bobot: k.bobot,
+        deskripsi: k.deskripsi,
+        status: k.upload_status || k.status || 'empty'
+      });
+    });
     
     // Convert comma-separated string to array
-    const formatted = (indikators as any[]).map(ind => ({
+    const formatted = indikators.map(ind => ({
       ...ind,
-      aksesUsers: ind.aksesUsers ? ind.aksesUsers.split(',') : []
+      aksesUsers: ind.aksesUsers ? ind.aksesUsers.split(',') : [],
+      kriteria: kriteriaMap.get(ind.id) || []
     }));
 
     return NextResponse.json(formatted);

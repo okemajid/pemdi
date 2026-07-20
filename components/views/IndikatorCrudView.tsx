@@ -425,13 +425,13 @@ export function IndikatorCrudView({
                     <React.Fragment key={aspek.id}>
                       {/* Aspect Row */}
                       <tr 
-                        className="bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors border-b border-gray-200"
+                        className="bg-blue-50/50 cursor-pointer hover:bg-blue-100/50 transition-colors border-b border-blue-100"
                         onClick={() => toggleAspek(aspek.id)}
                       >
-                        <td colSpan={3} className="py-3 px-4 text-sm text-gray-900 font-medium">
+                        <td colSpan={3} className="py-3 px-4 text-sm text-blue-900 font-semibold">
                           Aspek {aspek.no} {aspek.nama}
                         </td>
-                        <td className="py-3 px-4 text-center text-sm text-gray-900 font-medium">
+                        <td className="py-3 px-4 text-center text-sm text-blue-900 font-semibold">
                           {aspek.bobot} %
                         </td>
                         <td className="py-3 px-4 text-center">

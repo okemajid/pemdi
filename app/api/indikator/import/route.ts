@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { query } from "@/lib/db";
 
+interface ImportKriteria {
+  level: number;
+  bobot: number;
+  deskripsi: string;
+}
+
 interface ImportRow {
   no_aspek: number;
   nama_aspek: string;
@@ -10,6 +16,7 @@ interface ImportRow {
   nama_indikator: string;
   tipe: string;
   bobot_indikator: number;
+  kriteria: ImportKriteria[];
 }
 
 interface ImportResult {
@@ -17,6 +24,7 @@ interface ImportResult {
   aspekCreated: number;
   aspekUpdated: number;
   indikatorCreated: number;
+  indikatorUpdated: number;
   errors: { row: number; message: string }[];
 }
 
@@ -132,6 +140,19 @@ export async function POST(req: NextRequest) {
       const tipe = String(row[6] || "").trim();
       const bobot_indikator = Number(row[7]);
 
+      const kriteria: ImportKriteria[] = [];
+      for (let i = 0; i < 5; i++) {
+        const bobotCol = 8 + i * 2;
+        const descCol = 9 + i * 2;
+        if (row[descCol]) {
+          kriteria.push({
+            level: i + 1,
+            bobot: Number(row[bobotCol]) || 0,
+            deskripsi: String(row[descCol]).trim()
+          });
+        }
+      }
+
       // Validate
       const errs: string[] = [];
       if (isNaN(no_aspek) || no_aspek <= 0) errs.push("no_aspek tidak valid");
@@ -149,7 +170,7 @@ export async function POST(req: NextRequest) {
       }
 
       rows.push({
-        data: { no_aspek, nama_aspek, bobot_aspek, no_indikator, nama_indikator, tipe, bobot_indikator },
+        data: { no_aspek, nama_aspek, bobot_aspek, no_indikator, nama_indikator, tipe, bobot_indikator, kriteria },
         rowNum: excelRow,
       });
     });
@@ -172,6 +193,7 @@ export async function POST(req: NextRequest) {
       aspekCreated: 0,
       aspekUpdated: 0,
       indikatorCreated: 0,
+      indikatorUpdated: 0,
       errors: [...parseErrors],
     };
 
@@ -207,16 +229,57 @@ export async function POST(req: NextRequest) {
           result.aspekUpdated++;
         }
 
-        // Insert indikator
+        // Insert or Update indikator
         const aspekId = aspekMap[data.no_aspek];
-        const indId = `i_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        const existingInd = await query(
+          `SELECT id FROM indikator WHERE no = ? AND aspek_id = ?`,
+          [data.no_indikator, aspekId]
+        ) as any[];
 
-        await query(
-          `INSERT INTO indikator (id, no, nama, tipe, bobot, aspek_id) VALUES (?, ?, ?, ?, ?, ?)`,
-          [indId, data.no_indikator, data.nama_indikator, data.tipe, data.bobot_indikator, aspekId]
-        );
+        let indId;
+        if (existingInd && existingInd.length > 0) {
+          indId = existingInd[0].id;
+          await query(
+            `UPDATE indikator SET nama = ?, tipe = ?, bobot = ? WHERE id = ?`,
+            [data.nama_indikator, data.tipe, data.bobot_indikator, indId]
+          );
+          result.indikatorUpdated++;
+        } else {
+          indId = `i_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+          await query(
+            `INSERT INTO indikator (id, no, nama, tipe, bobot, aspek_id) VALUES (?, ?, ?, ?, ?, ?)`,
+            [indId, data.no_indikator, data.nama_indikator, data.tipe, data.bobot_indikator, aspekId]
+          );
+          result.indikatorCreated++;
+        }
 
-        result.indikatorCreated++;
+        const LEVEL_LABELS: Record<number, string> = {
+          1: "Inisiasi / Rintisan",
+          2: "Emerging / Cukup",
+          3: "Berkembang Baik",
+          4: "Embedded / Cukup Baik",
+          5: "Leading / Pemimpin",
+        };
+
+        for (const k of data.kriteria) {
+          const existingKriteria = await query(
+            `SELECT id FROM kriteria WHERE indikator_id = ? AND level = ?`,
+            [indId, k.level]
+          ) as any[];
+
+          if (existingKriteria && existingKriteria.length > 0) {
+            await query(
+              `UPDATE kriteria SET bobot = ?, deskripsi = ? WHERE id = ?`,
+              [k.bobot, k.deskripsi, existingKriteria[0].id]
+            );
+          } else {
+            const kId = `k_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+            await query(
+              `INSERT INTO kriteria (id, indikator_id, level, label, bobot, deskripsi, status) VALUES (?, ?, ?, ?, ?, ?, 'empty')`,
+              [kId, indId, k.level, LEVEL_LABELS[k.level] || `Level ${k.level}`, k.bobot, k.deskripsi]
+            );
+          }
+        }
       } catch (err: any) {
         result.errors.push({
           row: rowNum,
@@ -228,7 +291,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       result,
-      message: `Import selesai: ${result.indikatorCreated} indikator berhasil diimport, ${result.aspekCreated} aspek baru dibuat, ${result.aspekUpdated} aspek diperbarui.${result.errors.length > 0 ? ` ${result.errors.length} baris mengalami error.` : ""}`,
+      message: `Import selesai: ${result.indikatorCreated} indikator baru, ${result.indikatorUpdated} indikator diperbarui, ${result.aspekCreated} aspek baru, ${result.aspekUpdated} aspek diperbarui.${result.errors.length > 0 ? ` ${result.errors.length} baris mengalami error.` : ""}`,
     });
   } catch (error: any) {
     console.error("Error importing Excel:", error);

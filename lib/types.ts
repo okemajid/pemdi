@@ -4,6 +4,8 @@ export type Maturitas = 1 | 2 | 3 | 4 | 5;
 export type UploadStatus = "uploaded" | "pending" | "rejected" | "empty";
 
 export interface KriteriaLevel {
+  id?: string;
+  indikatorId?: string;
   level: Maturitas;
   label: string;
   bobot: number;
