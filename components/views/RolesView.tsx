@@ -6,6 +6,7 @@ interface RoleItem {
   nama: string;
   deskripsi: string;
   permissions: string[];
+  userCount?: number;
 }
 
 const ALL_PERMISSIONS = [
@@ -13,10 +14,6 @@ const ALL_PERMISSIONS = [
   "Kelola Pengguna OPD", "Input Penilaian", "Upload Dokumen",
   "Lihat Laporan", "Export Data", "Konfigurasi Sistem"
 ];
-
-const ROLE_USERS: Record<string, number> = {
-  "Super Admin": 1, "Admin Instansi": 4, "Operator OPD": 12, "Viewer": 8,
-};
 
 export function RolesView() {
   const [roles, setRoles] = useState<RoleItem[]>([]);
@@ -108,7 +105,7 @@ export function RolesView() {
                   <p className="text-xs text-gray-400">{r.deskripsi}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-lg font-extrabold text-gray-900">{ROLE_USERS[r.nama] || 0}</p>
+                  <p className="text-lg font-extrabold text-gray-900">{r.userCount || 0}</p>
                   <p className="text-[10px] text-gray-400">pengguna</p>
                 </div>
               </div>

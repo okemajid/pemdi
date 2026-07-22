@@ -24,12 +24,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await req.json();
-    const { nama, email, nip, instansi, role, status } = body;
+    const { nama, email, nip, instansi, role, status, password } = body;
 
-    await query(
-      `UPDATE pemdi_users SET nama=?, email=?, nip=?, instansi=?, role=?, status=? WHERE id=?`,
-      [nama, email, nip, instansi, role, status, id]
-    );
+    if (password) {
+      await query(
+        `UPDATE pemdi_users SET nama=?, email=?, nip=?, instansi=?, role=?, status=?, password=? WHERE id=?`,
+        [nama, email, nip, instansi, role, status, password, id]
+      );
+    } else {
+      await query(
+        `UPDATE pemdi_users SET nama=?, email=?, nip=?, instansi=?, role=?, status=? WHERE id=?`,
+        [nama, email, nip, instansi, role, status, id]
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Edit2, Trash2, Search, X, Loader2, ChevronDown, ChevronUp, ListChecks, Upload, Download, FileSpreadsheet, CheckCircle2, AlertCircle, Info } from "lucide-react";
-import { USERS } from "@/lib/mock-data";
 
 interface Aspek {
   id: string;
@@ -65,6 +64,8 @@ export function IndikatorCrudView({
     aksesUsers: [] as string[]
   });
 
+  const [dbUsers, setDbUsers] = useState<any[]>([]);
+
   const [formAspek, setFormAspek] = useState({
     no: "",
     nama: "",
@@ -78,19 +79,23 @@ export function IndikatorCrudView({
   async function fetchData() {
     setLoading(true);
     try {
-      const [resAspek, resIndikator] = await Promise.all([
+      const [resAspek, resIndikator, resUsers] = await Promise.all([
         fetch("/api/aspek"),
-        fetch("/api/indikator")
+        fetch("/api/indikator"),
+        fetch("/api/users")
       ]);
       
       let fetchedAspeks: Aspek[] = [];
       let fetchedIndikators: Indikator[] = [];
+      let fetchedUsers: any[] = [];
       
       if (resAspek.ok) fetchedAspeks = await resAspek.json();
       if (resIndikator.ok) fetchedIndikators = await resIndikator.json();
+      if (resUsers.ok) fetchedUsers = await resUsers.json();
       
       setAspeks(fetchedAspeks);
       setIndikators(fetchedIndikators);
+      setDbUsers(fetchedUsers);
 
       // Open all by default
       const initialOpenState: Record<string, boolean> = {};
@@ -174,26 +179,35 @@ export function IndikatorCrudView({
   function handleEditIndikator(ind: Indikator, e: React.MouseEvent) {
     e.stopPropagation();
     setEditingIndikatorId(ind.id);
+    
+    // Pastikan super admin selalu punya akses
+    const superAdminIds = dbUsers.filter(u => u.role === "Super Admin").map(u => u.id);
+    const combinedAkses = Array.from(new Set([...(ind.aksesUsers || []), ...superAdminIds]));
+
     setFormIndikator({
       aspekId: ind.aspekId,
       no: ind.no,
       tipe: ind.tipe,
       bobot: ind.bobot.toString(),
       nama: ind.nama,
-      aksesUsers: ind.aksesUsers || []
+      aksesUsers: combinedAkses
     });
     setShowIndikatorModal(true);
   }
 
   function handleAddIndikator() {
     setEditingIndikatorId(null);
+    
+    // Pastikan super admin selalu punya akses saat tambah baru
+    const superAdminIds = dbUsers.filter(u => u.role === "Super Admin").map(u => u.id);
+
     setFormIndikator({
       aspekId: "",
       no: "",
       tipe: "Internal",
       bobot: "",
       nama: "",
-      aksesUsers: []
+      aksesUsers: superAdminIds
     });
     setShowIndikatorModal(true);
   }
@@ -228,7 +242,8 @@ export function IndikatorCrudView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formIndikator,
-          bobot: Number(formIndikator.bobot)
+          bobot: Number(formIndikator.bobot),
+          aksesUsers: Array.from(new Set([...formIndikator.aksesUsers, ...dbUsers.filter(u => u.role === "Super Admin").map(u => u.id)]))
         })
       });
 
@@ -773,20 +788,26 @@ export function IndikatorCrudView({
                 <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wide">Beri Hak Akses (User / OPD)</label>
                 <p className="text-[10px] text-gray-400 mb-2">Pilih user mana saja yang diizinkan untuk melihat dan mengisi penilaian pada indikator ini.</p>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2">
-                  {USERS.map(user => (
-                    <label key={user.id} className="flex items-center gap-2 p-2 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                      <input 
-                        type="checkbox" 
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                        checked={formIndikator.aksesUsers.includes(user.id)}
-                        onChange={() => toggleUserAccess(user.id)}
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-gray-800">{user.nama}</span>
-                        <span className="text-[10px] text-gray-500">{user.instansi} - {user.role}</span>
-                      </div>
-                    </label>
-                  ))}
+                  {dbUsers.map(user => {
+                    const isSuperAdmin = user.role === "Super Admin";
+                    const isChecked = isSuperAdmin || formIndikator.aksesUsers.includes(user.id);
+                    
+                    return (
+                      <label key={user.id} className={`flex items-center gap-2 p-2 border border-gray-100 rounded-lg transition-colors ${isSuperAdmin ? "bg-gray-50 opacity-80 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer"}`}>
+                        <input 
+                          type="checkbox" 
+                          className={`rounded text-blue-600 focus:ring-blue-500 ${isSuperAdmin ? "cursor-not-allowed" : ""}`}
+                          checked={isChecked}
+                          disabled={isSuperAdmin}
+                          onChange={() => !isSuperAdmin && toggleUserAccess(user.id)}
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold text-gray-800">{user.nama} {isSuperAdmin && <span className="text-blue-600 ml-1">(Default)</span>}</span>
+                          <span className="text-[10px] text-gray-500">{user.instansi} - {user.role}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

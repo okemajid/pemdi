@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Plus, Edit2, Trash2, X, Loader2, Eye, ChevronLeft } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, X, Loader2, Eye, EyeOff, ChevronLeft, Key, UserCheck } from "lucide-react";
 
 interface UserItem {
   id: string;
@@ -30,7 +30,21 @@ const roleBadge: Record<string, string> = {
   "Viewer": "bg-gray-50 text-gray-600 border-gray-200",
 };
 
-export function UsersView() {
+interface CurrentUserProp {
+  id: string;
+  nama: string;
+  role: string;
+  instansi?: string;
+  permissions?: string[];
+}
+
+export function UsersView({ currentUser, onImpersonate }: { currentUser?: CurrentUserProp, onImpersonate?: (user: any) => void }) {
+  const isSuperAdmin = currentUser?.role === "Super Admin";
+  const perms = currentUser?.permissions || [];
+  const hasKelolaPengguna = isSuperAdmin || perms.includes("Kelola Pengguna");
+  const hasKelolaPenggunaOPD = perms.includes("Kelola Pengguna OPD");
+  const isAdmin = hasKelolaPengguna || hasKelolaPenggunaOPD;
+
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,9 +54,11 @@ export function UsersView() {
   const [detailIndikators, setDetailIndikators] = useState<IndikatorAkses[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false);
+  const [selfEditMode, setSelfEditMode] = useState(false);
 
   const [form, setForm] = useState({
-    nama: "", email: "", nip: "", instansi: "", role: "Operator OPD", status: "Aktif" as "Aktif" | "Nonaktif"
+    nama: "", email: "", nip: "", instansi: "", role: "Operator OPD", status: "Aktif" as "Aktif" | "Nonaktif", password: ""
   });
 
   useEffect(() => { fetchUsers(); }, []);
@@ -68,14 +84,30 @@ export function UsersView() {
 
   function handleAdd() {
     setEditingId(null);
-    setForm({ nama: "", email: "", nip: "", instansi: "", role: "Operator OPD", status: "Aktif" });
+    setSelfEditMode(false);
+    const defaultInstansi = (!hasKelolaPengguna && hasKelolaPenggunaOPD && currentUser?.instansi) ? currentUser.instansi : "";
+    setForm({ nama: "", email: "", nip: "", instansi: defaultInstansi, role: "Operator OPD", status: "Aktif", password: "" });
+    setShowPass(false);
+    setShowModal(true);
+  }
+
+  function handleSelfEdit() {
+    if (!currentUser) return;
+    const me = users.find(u => u.id === currentUser.id);
+    if (!me) return;
+    setEditingId(me.id);
+    setSelfEditMode(true);
+    setForm({ nama: me.nama, email: me.email, nip: me.nip, instansi: me.instansi, role: me.role, status: me.status, password: "" });
+    setShowPass(false);
     setShowModal(true);
   }
 
   function handleEdit(u: UserItem, e: React.MouseEvent) {
     e.stopPropagation();
     setEditingId(u.id);
-    setForm({ nama: u.nama, email: u.email, nip: u.nip, instansi: u.instansi, role: u.role, status: u.status });
+    setSelfEditMode(false);
+    setForm({ nama: u.nama, email: u.email, nip: u.nip, instansi: u.instansi, role: u.role, status: u.status, password: "" });
+    setShowPass(false);
     setShowModal(true);
   }
 
@@ -85,6 +117,39 @@ export function UsersView() {
     const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
     if (res.ok) setUsers(prev => prev.filter(u => u.id !== id));
     else alert("Gagal menghapus");
+  }
+
+  async function handleResetPassword(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirm("Reset password pengguna ini ke default ('password123')?")) return;
+    try {
+      const u = users.find(user => user.id === id);
+      if (!u) return;
+      // We pass the existing user data but with password set to "password123"
+      const res = await fetch(`/api/users/${id}`, { 
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...u, password: "password123" })
+      });
+      if (res.ok) alert("Password berhasil direset ke default: password123");
+      else alert("Gagal mereset password");
+    } catch { alert("Terjadi kesalahan"); }
+  }
+
+  async function handleImpersonateClick(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirm("Login sebagai pengguna ini (Impersonate)?")) return;
+    try {
+      const res = await fetch(`/api/users/${id}/impersonate`);
+      const data = await res.json();
+      if (res.ok && data.success && onImpersonate) {
+        onImpersonate(data.user);
+      } else {
+        alert(data.error || "Gagal melakukan impersonate");
+      }
+    } catch {
+      alert("Terjadi kesalahan saat memproses impersonate");
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -104,10 +169,14 @@ export function UsersView() {
     finally { setSaving(false); }
   }
 
-  const filtered = users.filter(u =>
-    u.nama?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = users.filter(u => {
+    // If user only has Kelola Pengguna OPD, they can only see their own instansi
+    if (!hasKelolaPengguna && hasKelolaPenggunaOPD && currentUser && u.instansi !== currentUser.instansi) {
+      return false;
+    }
+    return u.nama?.toLowerCase().includes(search.toLowerCase()) ||
+           u.email?.toLowerCase().includes(search.toLowerCase());
+  });
 
   if (showDetail) {
     return (
@@ -192,9 +261,15 @@ export function UsersView() {
           <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari pengguna..." className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100" />
         </div>
-        <button onClick={handleAdd} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white rounded-xl hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg,#1B3A6B,#2E5BA8)" }}>
-          <Plus size={13} /> Tambah Pengguna
-        </button>
+        {isAdmin ? (
+          <button onClick={handleAdd} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white rounded-xl hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg,#1B3A6B,#2E5BA8)" }}>
+            <Plus size={13} /> Tambah Pengguna
+          </button>
+        ) : (
+          <button onClick={handleSelfEdit} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white rounded-xl hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg,#1B3A6B,#2E5BA8)" }}>
+            <Edit2 size={13} /> Edit Profil Saya
+          </button>
+        )}
       </div>
 
       <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
@@ -233,10 +308,12 @@ export function UsersView() {
                   </td>
                   <td className="px-4 py-3.5 text-gray-400 whitespace-nowrap text-[10px]">{u.lastLogin}</td>
                   <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                      <button onClick={e => openDetail(u)} className="p-1.5 text-gray-300 hover:text-green-500 border border-gray-100 rounded-lg transition-colors"><Eye size={12} /></button>
-                      <button onClick={e => handleEdit(u, e)} className="p-1.5 text-gray-300 hover:text-blue-500 border border-gray-100 rounded-lg transition-colors"><Edit2 size={12} /></button>
-                      <button onClick={e => handleDelete(u.id, e)} className="p-1.5 text-gray-300 hover:text-red-500 border border-gray-100 rounded-lg transition-colors"><Trash2 size={12} /></button>
+                    <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                      <button onClick={e => openDetail(u)} className="p-1.5 text-green-600 bg-green-50 hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors" title="Lihat Akses"><Eye size={13} /></button>
+                      {hasKelolaPengguna && <button onClick={e => handleImpersonateClick(u.id, e)} className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors" title="Login sbg User (Impersonate)"><UserCheck size={13} /></button>}
+                      {isAdmin && <button onClick={e => handleEdit(u, e)} className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-colors" title="Edit"><Edit2 size={13} /></button>}
+                      {isAdmin && <button onClick={e => handleResetPassword(u.id, e)} className="p-1.5 text-yellow-600 bg-yellow-50 hover:bg-yellow-100 hover:text-yellow-700 rounded-lg transition-colors" title="Reset Password"><Key size={13} /></button>}
+                      {hasKelolaPengguna && <button onClick={e => handleDelete(u.id, e)} className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors" title="Hapus"><Trash2 size={13} /></button>}
                     </div>
                   </td>
                 </tr>
@@ -245,7 +322,7 @@ export function UsersView() {
           </table>
         </div>
         <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
-          <p className="text-[11px] text-gray-400">{filtered.length} dari {users.length} pengguna</p>
+          <p className="text-[11px] text-gray-400">{filtered.length} dari {(!hasKelolaPengguna && hasKelolaPenggunaOPD && currentUser) ? users.filter(u => u.instansi === currentUser.instansi).length : users.length} pengguna</p>
         </div>
       </div>
 
@@ -254,28 +331,56 @@ export function UsersView() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
           <form onSubmit={handleSubmit} className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10 overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between" style={{ background: "linear-gradient(135deg,#0d1f40,#1B3A6B)" }}>
-              <h3 className="text-white font-bold text-sm">{editingId ? "Edit Pengguna" : "Tambah Pengguna Baru"}</h3>
+              <h3 className="text-white font-bold text-sm">{selfEditMode ? "Edit Profil Saya" : editingId ? "Edit Pengguna" : "Tambah Pengguna Baru"}</h3>
               <button type="button" onClick={() => setShowModal(false)} className="text-white/60 hover:text-white"><X size={16} /></button>
             </div>
             <div className="p-6 space-y-3">
-              <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Nama Lengkap</label>
-                <input required value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
-              <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">NIP</label>
-                <input value={form.nip} onChange={e => setForm({...form, nip: e.target.value})} placeholder="18 digit NIP ASN" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
-              <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Email Instansi</label>
-                <input required type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="nama@instansi.go.id" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
-              <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Instansi / OPD</label>
-                <input value={form.instansi} onChange={e => setForm({...form, instansi: e.target.value})} placeholder="Nama Instansi" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
-              <div className="flex gap-3">
-                <div className="flex-1"><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Role</label>
-                  <select value={form.role} onChange={e => setForm({...form, role: e.target.value})} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50">
-                    {ROLES.map(r => <option key={r}>{r}</option>)}
-                  </select></div>
-                {editingId && <div className="flex-1"><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Status</label>
-                  <select value={form.status} onChange={e => setForm({...form, status: e.target.value as any})} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50">
-                    <option>Aktif</option><option>Nonaktif</option>
-                  </select></div>}
-              </div>
+              {/* Self-edit mode: only NIP, Email, Password */}
+              {selfEditMode ? (
+                <>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">NIP</label>
+                    <input value={form.nip} onChange={e => setForm({...form, nip: e.target.value})} placeholder="18 digit NIP ASN" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Email Instansi</label>
+                    <input required type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="nama@instansi.go.id" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Password <span className="text-gray-400 font-normal normal-case">(Biarkan kosong jika tidak ingin diubah)</span></label>
+                    <div className="relative">
+                      <input type={showPass ? "text" : "password"} value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="Ketik password baru untuk mengubah" className="w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" />
+                      <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                        {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Nama Lengkap</label>
+                    <input required value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">NIP</label>
+                    <input value={form.nip} onChange={e => setForm({...form, nip: e.target.value})} placeholder="18 digit NIP ASN" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Email Instansi</label>
+                    <input required type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="nama@instansi.go.id" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" /></div>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Instansi / OPD</label>
+                    <input disabled={!hasKelolaPengguna && hasKelolaPenggunaOPD} value={form.instansi} onChange={e => setForm({...form, instansi: e.target.value})} placeholder="Nama Instansi" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed" /></div>
+                  <div><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Password {editingId && <span className="text-gray-400 font-normal normal-case">(Biarkan kosong jika tidak ingin diubah)</span>}</label>
+                    <div className="relative">
+                      <input type={showPass ? "text" : "password"} value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder={editingId ? "Ketik password baru untuk mengubah" : "Default: password123"} className="w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50" />
+                      <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                        {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-1"><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Role</label>
+                      <select value={form.role} onChange={e => setForm({...form, role: e.target.value})} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50">
+                        {ROLES.map(r => <option key={r}>{r}</option>)}
+                      </select></div>
+                    {editingId && <div className="flex-1"><label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-1">Status</label>
+                      <select value={form.status} onChange={e => setForm({...form, status: e.target.value as any})} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50">
+                        <option>Aktif</option><option>Nonaktif</option>
+                      </select></div>}
+                  </div>
+                </>
+              )}
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-gray-200 text-xs font-bold rounded-xl text-gray-600 hover:bg-gray-50">Batal</button>
                 <button disabled={saving} type="submit" className="flex-1 py-2.5 text-white text-xs font-bold rounded-xl hover:opacity-90 flex items-center justify-center gap-2" style={{ background: "linear-gradient(135deg,#1B3A6B,#2E5BA8)" }}>

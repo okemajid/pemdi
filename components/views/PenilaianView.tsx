@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Settings, Loader2 } from "lucide-react";
 import { Page, Indikator, Aspek } from "@/lib/types";
-import { SESSION } from "@/lib/mock-data";
 
-export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Page) => void; setDetailIndikator: (i: Indikator) => void }) {
+export function PenilaianView({ setPage, setDetailIndikator, currentUser }: { setPage: (p: Page) => void; setDetailIndikator: (i: Indikator) => void; currentUser: any }) {
   const [openAspeks, setOpenAspeks] = useState<Record<string, boolean>>({});
   const [aspeksData, setAspeksData] = useState<Aspek[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +10,7 @@ export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Pa
   useEffect(() => {
     async function fetchData() {
       try {
-        const url = SESSION.role === "Super Admin" ? "/api/indikator" : `/api/indikator?userId=${SESSION.id}`;
+        const url = currentUser.role === "Super Admin" ? "/api/indikator" : `/api/indikator?userId=${currentUser.id}`;
         
         const [resAspek, resIndikator] = await Promise.all([
           fetch("/api/aspek"),
@@ -31,7 +30,7 @@ export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Pa
           });
 
           // Only keep aspects that have indicators (or keep all if Super Admin)
-          const filteredAspeks = aspeks.filter(a => a.indikators.length > 0 || SESSION.role === "Super Admin");
+          const filteredAspeks = aspeks.filter(a => a.indikators.length > 0 || currentUser.role === "Super Admin");
           setAspeksData(filteredAspeks);
 
           // Open all by default
@@ -69,8 +68,8 @@ export function PenilaianView({ setPage, setDetailIndikator }: { setPage: (p: Pa
     <div className="min-h-full bg-white text-gray-800 p-6" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="bg-gray-50 rounded-t border-b-2 border-blue-600">
         <div className="flex px-4 py-3 text-xs font-bold text-gray-700">
-          <div className="w-1/4">Kategori</div>
-          <div className="w-1/2">: {SESSION.kategori}</div>
+          <div className="w-1/4">Instansi</div>
+          <div className="w-1/2">: {currentUser.instansi}</div>
         </div>
       </div>
       

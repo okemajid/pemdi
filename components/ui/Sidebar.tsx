@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, Users, Shield, LogOut, BarChart3, ShieldCheck, Menu, ListTree, Activity } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, Shield, LogOut, BarChart3, ShieldCheck, Menu, ListTree, Activity, Info } from "lucide-react";
 import { Page } from "@/lib/types";
 
 interface CurrentUser {
@@ -7,19 +7,51 @@ interface CurrentUser {
   instansi: string;
   kode?: string;
   kategori?: string;
+  permissions?: string[];
 }
 
 export function Sidebar({ page, setPage, collapsed, setCollapsed, currentUser }: { page: Page; setPage: (p: Page) => void; collapsed: boolean; setCollapsed: (v: boolean) => void; currentUser: CurrentUser }) {
-  const nav = [
+  function handleLogout() {
+    if (confirm("Apakah Anda yakin ingin keluar dari aplikasi?")) {
+      setPage("landing");
+    }
+  }
+
+  const isSuperAdmin = currentUser.role === "Super Admin";
+  const perms = currentUser.permissions || [];
+  const has = (p: string) => isSuperAdmin || perms.includes(p);
+
+  const nav: { key: Page; label: string; icon: any }[] = [
     { key: "dashboard" as Page, label: "Dashboard", icon: LayoutDashboard },
-    { key: "penilaian" as Page, label: "Penilaian Mandiri", icon: ClipboardList },
-    { key: "laporan" as Page, label: "Analisis Capaian", icon: BarChart3 },
-    { key: "users" as Page, label: "Manajemen Pengguna", icon: Users },
-    { key: "roles" as Page, label: "Manajemen Role", icon: Shield },
   ];
 
-  if (currentUser.role === "Super Admin") {
-    nav.splice(2, 0, { key: "indikator_crud" as Page, label: "Manajemen Indikator", icon: ListTree });
+  // Penilaian - visible if user has Input Penilaian or Upload Dokumen
+  if (has("Input Penilaian") || has("Upload Dokumen")) {
+    nav.push({ key: "penilaian" as Page, label: "Penilaian Mandiri", icon: ClipboardList });
+  }
+
+  // Manajemen Indikator - only Super Admin or Kelola Indikator
+  if (has("Kelola Indikator")) {
+    nav.push({ key: "indikator_crud" as Page, label: "Manajemen Indikator", icon: ListTree });
+  }
+
+  // Laporan - visible if user has Lihat Laporan
+  if (has("Lihat Laporan")) {
+    nav.push({ key: "laporan" as Page, label: "Analisis Capaian", icon: BarChart3 });
+  }
+
+  // Manajemen Pengguna - only Super Admin or Kelola Pengguna or Kelola Pengguna OPD
+  if (has("Kelola Pengguna") || has("Kelola Pengguna OPD")) {
+    nav.push({ key: "users" as Page, label: "Manajemen Pengguna", icon: Users });
+  }
+
+  // Manajemen Role - only Super Admin or Konfigurasi Sistem
+  if (has("Konfigurasi Sistem")) {
+    nav.push({ key: "roles" as Page, label: "Manajemen Role", icon: Shield });
+  }
+
+  // Log Aktivitas - only Super Admin
+  if (isSuperAdmin) {
     nav.push({ key: "log_activity" as Page, label: "Log Aktivitas", icon: Activity });
   }
 
@@ -71,10 +103,10 @@ export function Sidebar({ page, setPage, collapsed, setCollapsed, currentUser }:
               <p className="text-white text-[11px] font-semibold truncate">{currentUser.nama}</p>
               <p className="text-white/40 text-[9px] truncate">{currentUser.role}</p>
             </div>
-            <button onClick={() => setPage("landing")} className="text-white/30 hover:text-white/60 transition-colors"><LogOut size={13} /></button>
+            <button onClick={handleLogout} className="text-white/40 hover:text-red-400 transition-colors p-1.5 hover:bg-red-500/10 rounded-lg"><LogOut size={13} /></button>
           </div>
         ) : (
-          <button onClick={() => setPage("landing")} className="w-full flex justify-center text-white/30 hover:text-white/60"><LogOut size={14} /></button>
+          <button onClick={handleLogout} className="w-full flex justify-center text-white/40 hover:text-red-400 transition-colors p-2 hover:bg-red-500/10 rounded-lg"><LogOut size={14} /></button>
         )}
       </div>
 

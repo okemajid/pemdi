@@ -16,16 +16,17 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { nama, email, nip, instansi, role } = body;
+    const { nama, email, nip, instansi, role, password } = body;
 
     if (!nama || !email || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const defaultPassword = password || "password123";
     const id = `u_${Date.now()}`;
     await query(
-      `INSERT INTO pemdi_users (id, nama, email, nip, instansi, role, status, last_login) VALUES (?, ?, ?, ?, ?, ?, 'Aktif', ?)`,
-      [id, nama, email, nip || "-", instansi || "-", role, new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })]
+      `INSERT INTO pemdi_users (id, nama, email, nip, instansi, role, status, last_login, password) VALUES (?, ?, ?, ?, ?, ?, 'Aktif', ?, ?)`,
+      [id, nama, email, nip || "-", instansi || "-", role, new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }), defaultPassword]
     );
 
     await query(

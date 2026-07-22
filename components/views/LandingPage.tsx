@@ -59,8 +59,8 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <a href="#" className="text-white/60 text-xs hover:text-white transition-colors">Panduan</a>
-            <a href="#" className="text-white/60 text-xs hover:text-white transition-colors">Tentang</a>
+            <a href="/Panduan_PEMDI.md" download className="text-white/60 text-xs hover:text-white transition-colors">Panduan</a>
+            <button onClick={() => setPage("tentang")} className="text-white/60 text-xs hover:text-white transition-colors">Tentang</button>
             <button onClick={() => setPage("login")} className="px-4 py-1.5 text-xs font-bold text-white rounded-lg border border-white/20 hover:bg-white/10 transition-colors">
               Masuk
             </button>
@@ -87,9 +87,9 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
             <button onClick={() => setPage("login")} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white rounded-xl transition-all hover:scale-105" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
               Mulai Penilaian <ArrowRight size={15} />
             </button>
-            <button className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white/80 rounded-xl border border-white/20 hover:bg-white/10 transition-colors">
+            <a href="/Panduan_PEMDI.md" download className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white/80 rounded-xl border border-white/20 hover:bg-white/10 transition-colors">
               <BookOpen size={15} /> Unduh Panduan
-            </button>
+            </a>
           </div>
         </div>
 

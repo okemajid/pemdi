@@ -1,15 +1,37 @@
 import { useState } from "react";
-import { ShieldCheck, Mail, Lock, RefreshCw } from "lucide-react";
+import { ShieldCheck, Mail, Lock, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Page } from "@/lib/types";
 
-export function LoginPage({ setPage }: { setPage: (p: Page) => void }) {
+export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => void; onLoginSuccess?: (u: any) => void }) {
   const [email, setEmail] = useState("admin@pemdi.go.id");
   const [pass, setPass] = useState("••••••••");
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  function handleLogin() {
+  async function handleLogin() {
     setLoading(true);
-    setTimeout(() => { setLoading(false); setPage("dashboard"); }, 1200);
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password: pass })
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        if (onLoginSuccess) {
+          onLoginSuccess(data.user);
+        } else {
+          setPage("dashboard");
+        }
+      } else {
+        alert(data.error || "Gagal masuk. Periksa kembali kredensial Anda.");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan sistem saat mencoba masuk.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -75,8 +97,11 @@ export function LoginPage({ setPage }: { setPage: (p: Page) => void }) {
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block mb-1.5">Kata Sandi</label>
               <div className="relative">
                 <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="password" value={pass} onChange={e => setPass(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                <input type={showPass ? "text" : "password"} value={pass} onChange={e => setPass(e.target.value)}
+                  className="w-full pl-9 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                  {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
               </div>
             </div>
 

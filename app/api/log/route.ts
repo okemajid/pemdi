@@ -4,7 +4,7 @@ import { query } from "@/lib/db";
 export async function GET() {
   try {
     const logs = await query(
-      `SELECT l.id, l.user_id, u.nama as userName, l.aksi, l.detail, l.created_at as createdAt
+      `SELECT l.id, l.user_id, u.nama as userName, l.aksi, l.detail, DATE_FORMAT(l.created_at, '%Y-%m-%dT%H:%i:%s') as createdAt
        FROM log_activity l
        LEFT JOIN pemdi_users u ON l.user_id = u.id
        ORDER BY l.created_at DESC

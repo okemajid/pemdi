@@ -25,6 +25,8 @@ export function LogActivityView() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterAksi, setFilterAksi] = useState("semua");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   useEffect(() => { fetchLogs(); }, []);
 
@@ -37,6 +39,9 @@ export function LogActivityView() {
     finally { setLoading(false); }
   }
 
+  // Reset page to 1 when search or filter changes
+  useEffect(() => { setCurrentPage(1); }, [search, filterAksi]);
+
   const allAksi = ["semua", ...Array.from(new Set(logs.map(l => l.aksi).filter(Boolean)))];
   
   const filtered = logs.filter(l => {
@@ -47,6 +52,9 @@ export function LogActivityView() {
     const matchAksi = filterAksi === "semua" || l.aksi === filterAksi;
     return matchSearch && matchAksi;
   });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedLogs = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   function formatDate(dt: string) {
     if (!dt) return "–";
@@ -105,7 +113,7 @@ export function LogActivityView() {
                 <tr><td colSpan={4} className="py-12 text-center"><Loader2 className="animate-spin text-blue-500 mx-auto" size={22} /></td></tr>
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={4} className="py-12 text-center text-gray-400">Tidak ada log ditemukan</td></tr>
-              ) : filtered.map((log, i) => (
+              ) : paginatedLogs.map((log, i) => (
                 <tr key={log.id} className={`border-b border-gray-50 hover:bg-blue-50/20 transition-colors ${i % 2 === 0 ? "" : "bg-gray-50/30"}`}>
                   <td className="px-5 py-3 text-gray-400 whitespace-nowrap">{formatDate(log.createdAt)}</td>
                   <td className="px-4 py-3">
@@ -127,6 +135,42 @@ export function LogActivityView() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <span className="text-[10px] text-gray-500">
+              Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)} dari {filtered.length} log
+            </span>
+            <div className="flex items-center gap-1">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Sebelumnya
+              </button>
+              <div className="flex items-center gap-1 mx-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-colors ${page === currentPage ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-200"}`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <button 
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Selanjutnya
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
