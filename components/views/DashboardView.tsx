@@ -82,7 +82,7 @@ export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="flex items-center gap-6">
           <div className="text-center">
-            <p className="text-white/50 text-[10px] uppercase tracking-wide">Indeks Maturitas</p>
+            <p className="text-white/50 text-[10px] uppercase tracking-wide">Indeks Kematangan</p>
             <p className="text-3xl font-extrabold text-white">{nilaiRata.toFixed(2)}</p>
             <p className="text-white/40 text-[10px]">dari 5.00</p>
           </div>
@@ -122,7 +122,7 @@ export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
         {/* Radar */}
         <div className="bg-white border border-gray-100 rounded-xl p-5 lg:col-span-2">
           <h3 className="text-sm font-bold text-gray-900 mb-1">Capaian per Aspek</h3>
-          <p className="text-xs text-gray-400 mb-4">Nilai maturitas rata-rata per domain penilaian</p>
+          <p className="text-xs text-gray-400 mb-4">Nilai kematangan rata-rata per domain penilaian</p>
           <ResponsiveContainer width="100%" height={200}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="#f1f5f9" />

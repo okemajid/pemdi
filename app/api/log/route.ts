@@ -4,11 +4,10 @@ import { query } from "@/lib/db";
 export async function GET() {
   try {
     const logs = await query(
-      `SELECT l.id, l.user_id, u.nama as userName, l.aksi, l.detail, DATE_FORMAT(l.created_at, '%Y-%m-%dT%H:%i:%s') as createdAt
-       FROM log_activity l
-       LEFT JOIN pemdi_users u ON l.user_id = u.id
-       ORDER BY l.created_at DESC
-       LIMIT 200`
+      `SELECT id, user_id as userName, aksi, detail, DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') as createdAt
+       FROM log_activity
+       ORDER BY created_at DESC
+       LIMIT 500`
     );
     return NextResponse.json(logs);
   } catch (error) {
@@ -20,13 +19,14 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    // userId here stores the user's name (not their database ID)
     const { userId, aksi, detail } = body;
 
     if (!userId || !aksi) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const id = `l_${Date.now()}`;
+    const id = `l_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     await query(
       `INSERT INTO log_activity (id, user_id, aksi, detail, created_at) VALUES (?, ?, ?, ?, NOW())`,
       [id, userId, aksi, detail || ""]

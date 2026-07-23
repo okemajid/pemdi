@@ -3,10 +3,10 @@ import { MATURITY_COLORS } from "@/lib/mock-data";
 
 export function InstansiView() {
   const list = [
-    { kode: "3220301", nama: "Pemerintah Kabupaten Ciamis", kategori: "Kab/Kota", provinsi: "Jawa Barat", status: "Aktif", indeks: 3.42, tahun: 2025 },
-    { kode: "3220401", nama: "Pemerintah Kota Tasikmalaya", kategori: "Kab/Kota", provinsi: "Jawa Barat", status: "Aktif", indeks: 3.68, tahun: 2025 },
-    { kode: "3220101", nama: "Pemerintah Kabupaten Garut", kategori: "Kab/Kota", provinsi: "Jawa Barat", status: "Aktif", indeks: 2.95, tahun: 2025 },
-    { kode: "3200000", nama: "Pemerintah Provinsi Jawa Barat", kategori: "Provinsi", provinsi: "Jawa Barat", status: "Aktif", indeks: 4.12, tahun: 2025 },
+    { kode: "3220301", nama: "Pemerintah Kabupaten Ciamis", kategori: "Kab/Kota", provinsi: "Jawa Barat", status: "Aktif", indeks: 3.42, tahun: 2026 },
+    { kode: "3220401", nama: "Pemerintah Kota Tasikmalaya", kategori: "Kab/Kota", provinsi: "Jawa Barat", status: "Aktif", indeks: 3.68, tahun: 2026 },
+    { kode: "3220101", nama: "Pemerintah Kabupaten Garut", kategori: "Kab/Kota", provinsi: "Jawa Barat", status: "Aktif", indeks: 2.95, tahun: 2026 },
+    { kode: "3200000", nama: "Pemerintah Provinsi Jawa Barat", kategori: "Provinsi", provinsi: "Jawa Barat", status: "Aktif", indeks: 4.12, tahun: 2026 },
   ];
 
   return (
@@ -21,7 +21,7 @@ export function InstansiView() {
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
-              {["Kode", "Nama Instansi", "Kategori", "Provinsi", "Indeks Maturitas", "Status", "Aksi"].map(h => (
+              {["Kode", "Nama Instansi", "Kategori", "Provinsi", "Indeks Kematangan", "Status", "Aksi"].map(h => (
                 <th key={h} className="text-left px-4 py-3 font-bold text-gray-400 text-[10px] uppercase tracking-wide">{h}</th>
               ))}
             </tr>

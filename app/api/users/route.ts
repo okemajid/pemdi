@@ -4,7 +4,7 @@ import { query } from "@/lib/db";
 export async function GET() {
   try {
     const users = await query(
-      `SELECT id, nama, email, nip, instansi, role, status, last_login as lastLogin FROM pemdi_users ORDER BY nama ASC`
+      `SELECT id, nama, email, nip, instansi, role, status, last_login as lastLogin FROM users ORDER BY nama ASC`
     );
     return NextResponse.json(users);
   } catch (error) {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const defaultPassword = password || "password123";
     const id = `u_${Date.now()}`;
     await query(
-      `INSERT INTO pemdi_users (id, nama, email, nip, instansi, role, status, last_login, password) VALUES (?, ?, ?, ?, ?, ?, 'Aktif', ?, ?)`,
+      `INSERT INTO users (id, nama, email, nip, instansi, role, status, last_login, password) VALUES (?, ?, ?, ?, ?, ?, 'Aktif', ?, ?)`,
       [id, nama, email, nip || "-", instansi || "-", role, new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }), defaultPassword]
     );
 

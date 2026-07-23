@@ -28,12 +28,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     if (password) {
       await query(
-        `UPDATE pemdi_users SET nama=?, email=?, nip=?, instansi=?, role=?, status=?, password=? WHERE id=?`,
+        `UPDATE users SET nama=?, email=?, nip=?, instansi=?, role=?, status=?, password=? WHERE id=?`,
         [nama, email, nip, instansi, role, status, password, id]
       );
     } else {
       await query(
-        `UPDATE pemdi_users SET nama=?, email=?, nip=?, instansi=?, role=?, status=? WHERE id=?`,
+        `UPDATE users SET nama=?, email=?, nip=?, instansi=?, role=?, status=? WHERE id=?`,
         [nama, email, nip, instansi, role, status, id]
       );
     }
@@ -48,7 +48,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await query(`DELETE FROM pemdi_users WHERE id = ?`, [id]);
+    await query(`DELETE FROM users WHERE id = ?`, [id]);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting user:", error);

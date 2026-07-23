@@ -3,7 +3,7 @@ import { Upload, Eye, Download } from "lucide-react";
 import { Indikator, KriteriaLevel } from "@/lib/types";
 import { MATURITY_LABELS, MATURITY_COLORS } from "@/lib/mock-data";
 import { UploadModal } from "@/components/ui/UploadModal";
-import { Maturitas } from "@/lib/types";
+import { Kematangan } from "@/lib/types";
 
 export function DetailView({ indikator }: { indikator: Indikator | null }) {
   const [uploadKriteria, setUploadKriteria] = useState<{ k: KriteriaLevel; iNama: string } | null>(null);
@@ -75,8 +75,8 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
             <tbody>
               {[1, 2, 3, 4, 5].map((level) => {
                 const kriteriaList = kriteriaByLevel[level] || [];
-                const levelLabel = MATURITY_LABELS[level as Maturitas] || `Level ${level}`;
-                const levelColor = MATURITY_COLORS[level as Maturitas];
+                const levelLabel = MATURITY_LABELS[level as Kematangan] || `Level ${level}`;
+                const levelColor = MATURITY_COLORS[level as Kematangan];
                 const uploaded = kriteriaList.filter(k => k.status === 'uploaded').length;
 
                 return (

@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const rows = await query(
-      `SELECT id, nama, email, nip, instansi, role, status FROM pemdi_users WHERE id = ? LIMIT 1`,
+      `SELECT id, nama, email, nip, instansi, role, status FROM users WHERE id = ? LIMIT 1`,
       [id]
     ) as any[];
 

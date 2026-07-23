@@ -20,8 +20,10 @@ import { KriteriaCrudView } from "@/components/views/KriteriaCrudView";
 import { LogActivityView } from "@/components/views/LogActivityView";
 import { TentangAplikasiView } from "@/components/views/TentangAplikasiView";
 
+import { PanduanView } from "@/components/views/PanduanView";
+
 const SESSION_KEY = "pemdi_session";
-const SESSION_TTL_MS = 3 * 60 * 1000; // 3 menit
+const SESSION_TTL_MS = 60 * 60 * 1000; // 60 menit
 
 function getStoredPage(): Page {
   if (typeof window === "undefined") return "landing";
@@ -31,8 +33,12 @@ function getStoredPage(): Page {
     const { page, timestamp } = JSON.parse(raw);
     if (Date.now() - timestamp > SESSION_TTL_MS) {
       sessionStorage.removeItem(SESSION_KEY);
-      return "landing";
+      sessionStorage.removeItem("logged_in_user");
+      sessionStorage.removeItem("original_admin_user");
+      return "login";
     }
+    // Update timestamp on reload
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ page, timestamp: Date.now() }));
     return page as Page;
   } catch {
     return "landing";
@@ -40,6 +46,7 @@ function getStoredPage(): Page {
 }
 
 export default function App() {
+  const [mounted, setMounted] = useState(false);
   const [page, setPageState] = useState<Page>("landing");
   const [collapsed, setCollapsed] = useState(false);
   const [detailIndikator, setDetailIndikator] = useState<Indikator | null>(null);
@@ -49,8 +56,9 @@ export default function App() {
 
   // Restore session on first render (client-side only)
   useEffect(() => {
+    setMounted(true);
     const stored = getStoredPage();
-    if (stored !== "landing" && stored !== "login") {
+    if (stored !== "landing") {
       setPageState(stored);
     }
     const storedUser = sessionStorage.getItem("logged_in_user");
@@ -65,6 +73,7 @@ export default function App() {
         setOriginalAdminUser(JSON.parse(storedAdmin));
       } catch (e) {}
     }
+
   }, []);
 
   // Wrapper setPage yang juga menyimpan ke sessionStorage
@@ -112,22 +121,26 @@ export default function App() {
   const PAGE_META: Record<Page, { title: string; sub: string }> = {
     landing: { title: "", sub: "" },
     login: { title: "", sub: "" },
-    dashboard: { title: "Dashboard", sub: `${currentUser.instansi} · Tahun Penilaian 2025` },
+    dashboard: { title: "Dashboard", sub: `${currentUser.instansi} · Tahun Penilaian 2026` },
     penilaian: { title: "Penilaian Mandiri Pemerintah Digital", sub: `Kode: ${currentUser.kode || '-'} · ${currentUser.instansi}` },
-    detail: { title: detailIndikator ? `Tingkat Kematangan Penilaian: ${detailIndikator.nama}` : "Detail Indikator", sub: "Upload dan kelola bukti dukung per level maturitas" },
+    detail: { title: detailIndikator ? `Tingkat Kematangan Penilaian: ${detailIndikator.nama}` : "Detail Indikator", sub: "Upload dan kelola bukti dukung per level kematangan" },
     users: { title: "Manajemen Pengguna", sub: "Kelola akun ASN yang memiliki akses ke sistem PEMDI" },
     roles: { title: "Manajemen Role & Hak Akses", sub: "Konfigurasi peran dan izin akses pengguna" },
     instansi: { title: "Regulasi & Instansi", sub: "Daftar instansi pemerintah dan regulasi PEMDI" },
-    laporan: { title: "Analisis Capaian", sub: "Rekap nilai maturitas dan progres pengisian dokumen" },
+    laporan: { title: "Analisis Capaian", sub: "Rekap nilai kematangan dan progres pengisian dokumen" },
     indikator_crud: { title: "Manajemen Indikator", sub: "Kelola aspek dan indikator penilaian mandiri" },
     kriteria_crud: { title: kriteriaIndikator ? `Kelola Kriteria: ${kriteriaIndikator.nama}` : "Kelola Kriteria", sub: "Tambah, edit, dan hapus data dukung per level kematangan" },
     log_activity: { title: "Log Aktivitas", sub: "Pantau aktivitas pengguna di dalam sistem" },
     tentang: { title: "Tentang Aplikasi", sub: "Informasi sistem PEMDI, versi rilis, dan pusat bantuan" },
+    panduan: { title: "Panduan Penggunaan", sub: "Petunjuk interaktif menggunakan aplikasi PEMDI" },
   };
+
+  if (!mounted) return null;
 
   if (page === "landing") return <LandingPage setPage={setPage} />;
   if (page === "login") return <LoginPage setPage={setPage} onLoginSuccess={handleLoginSuccess} />;
   if (page === "tentang") return <TentangAplikasiView setPage={setPage} />;
+  if (page === "panduan") return <PanduanView setPage={setPage} />;
 
   const { title, sub } = PAGE_META[page];
 
@@ -168,7 +181,7 @@ export default function App() {
 
         <footer className="border-t border-gray-100 px-5 py-2 bg-white flex items-center justify-between flex-shrink-0">
           <p className="text-[10px] text-gray-300">Sistem PEMDI · Kementerian Dalam Negeri RI · v1.0.0</p>
-          <p className="text-[10px] text-gray-300">Tahun Anggaran 2025 · {currentUser.instansi}</p>
+          <p className="text-[10px] text-gray-300">Tahun Anggaran 2026 · {currentUser.instansi}</p>
         </footer>
       </div>
       </div>

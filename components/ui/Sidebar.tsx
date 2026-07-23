@@ -13,7 +13,7 @@ interface CurrentUser {
 export function Sidebar({ page, setPage, collapsed, setCollapsed, currentUser }: { page: Page; setPage: (p: Page) => void; collapsed: boolean; setCollapsed: (v: boolean) => void; currentUser: CurrentUser }) {
   function handleLogout() {
     if (confirm("Apakah Anda yakin ingin keluar dari aplikasi?")) {
-      setPage("landing");
+      setPage("login");
     }
   }
 

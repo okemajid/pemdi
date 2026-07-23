@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const rows = await query(
-      `SELECT id, nama, email, nip, instansi, role, status FROM pemdi_users 
+      `SELECT id, nama, email, nip, instansi, role, status FROM users 
        WHERE (email = ? OR nip = ?) AND password = ? LIMIT 1`,
       [username, username, password]
     ) as any[];
@@ -47,14 +47,14 @@ export async function POST(req: NextRequest) {
 
     // Update last_login
     await query(
-      `UPDATE pemdi_users SET last_login = ? WHERE id = ?`,
+      `UPDATE users SET last_login = ? WHERE id = ?`,
       [new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: '2-digit', minute: '2-digit' }), user.id]
     );
 
-    // Log login activity
+    // Log login activity — store user's name, not ID
     await query(
       `INSERT INTO log_activity (id, user_id, aksi, detail, created_at) VALUES (?, ?, 'Login', ?, NOW())`,
-      [`l_${Date.now()}`, user.id, `User login ke sistem`]
+      [`l_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, user.nama, `Login ke sistem`]
     ).catch(() => {});
 
     return NextResponse.json({ success: true, user });

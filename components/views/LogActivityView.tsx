@@ -3,7 +3,6 @@ import { Loader2, Search, Activity, Filter, RefreshCw } from "lucide-react";
 
 interface LogItem {
   id: string;
-  user_id: string;
   userName: string;
   aksi: string;
   detail: string;
@@ -26,7 +25,7 @@ export function LogActivityView() {
   const [search, setSearch] = useState("");
   const [filterAksi, setFilterAksi] = useState("semua");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   useEffect(() => { fetchLogs(); }, []);
 
@@ -121,7 +120,7 @@ export function LogActivityView() {
                       <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0" style={{ background: "linear-gradient(135deg,#1B3A6B,#2E5BA8)" }}>
                         {(log.userName || "?").split(" ").map((w: string) => w[0]).join("").slice(0, 2)}
                       </div>
-                      <span className="font-semibold text-gray-800">{log.userName || log.user_id}</span>
+                      <span className="font-semibold text-gray-800">{log.userName || "–"}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">

@@ -1,13 +1,13 @@
-import { Aspek, UserItem, Role, Maturitas } from "./types";
+import { Aspek, UserItem, Role, Kematangan } from "./types";
 
 export const SESSION = { id: "u6", nama: "Admin Sistem", nip: "-", role: "Super Admin" as Role, instansi: "Kemendagri", kode: "00000", kategori: "Pusat" };
 
-export const MATURITY_LABELS: Record<Maturitas, string> = {
+export const MATURITY_LABELS: Record<Kematangan, string> = {
   1: "Inisiasi / Rintisan", 2: "Emerging / Cukup", 3: "Berkembang Baik",
   4: "Embedded / Capat Baik", 5: "Leading / Pemimpin",
 };
 
-export const MATURITY_COLORS: Record<Maturitas, string> = {
+export const MATURITY_COLORS: Record<Kematangan, string> = {
   1: "#EF4444", 2: "#F97316", 3: "#EAB308", 4: "#22C55E", 5: "#3B82F6",
 };
 
@@ -112,12 +112,12 @@ export const aspeks: Aspek[] = [
 ];
 
 export const USERS: UserItem[] = [
-  { id: "u1", nama: "Budi Santoso", email: "budi@ciamiskab.go.id", nip: "198705122010011002", instansi: "Diskominfo Ciamis", role: "Admin Instansi", status: "Aktif", lastLogin: "14 Jul 2025, 08:32" },
-  { id: "u2", nama: "Siti Rahayu", email: "siti@ciamiskab.go.id", nip: "199001152012012001", instansi: "Dinas Pendidikan", role: "Operator OPD", status: "Aktif", lastLogin: "14 Jul 2025, 07:15" },
-  { id: "u3", nama: "Ahmad Fauzi", email: "ahmad@ciamiskab.go.id", nip: "198803202011011003", instansi: "BAPPEDA", role: "Operator OPD", status: "Aktif", lastLogin: "13 Jul 2025, 16:44" },
-  { id: "u4", nama: "Dewi Kurniawati", email: "dewi@ciamiskab.go.id", nip: "199205102015012002", instansi: "Dinas Kesehatan", role: "Viewer", status: "Aktif", lastLogin: "12 Jul 2025, 10:20" },
-  { id: "u5", nama: "Rizky Pratama", email: "rizky@ciamiskab.go.id", nip: "199407082017011001", instansi: "Diskominfo Ciamis", role: "Operator OPD", status: "Nonaktif", lastLogin: "01 Jul 2025, 14:00" },
-  { id: "u6", nama: "Admin Sistem", email: "admin@pemdi.go.id", nip: "–", instansi: "Kemendagri", role: "Super Admin", status: "Aktif", lastLogin: "14 Jul 2025, 09:00" },
+  { id: "u1", nama: "Budi Santoso", email: "budi@ciamiskab.go.id", nip: "198705122010011002", instansi: "Diskominfo Ciamis", role: "Admin Instansi", status: "Aktif", lastLogin: "14 Jul 2026, 08:32" },
+  { id: "u2", nama: "Siti Rahayu", email: "siti@ciamiskab.go.id", nip: "199001152012012001", instansi: "Dinas Pendidikan", role: "Operator OPD", status: "Aktif", lastLogin: "14 Jul 2026, 07:15" },
+  { id: "u3", nama: "Ahmad Fauzi", email: "ahmad@ciamiskab.go.id", nip: "198803202011011003", instansi: "BAPPEDA", role: "Operator OPD", status: "Aktif", lastLogin: "13 Jul 2026, 16:44" },
+  { id: "u4", nama: "Dewi Kurniawati", email: "dewi@ciamiskab.go.id", nip: "199205102015012002", instansi: "Dinas Kesehatan", role: "Viewer", status: "Aktif", lastLogin: "12 Jul 2026, 10:20" },
+  { id: "u5", nama: "Rizky Pratama", email: "rizky@ciamiskab.go.id", nip: "199407082017011001", instansi: "Diskominfo Ciamis", role: "Operator OPD", status: "Nonaktif", lastLogin: "01 Jul 2026, 14:00" },
+  { id: "u6", nama: "Admin Sistem", email: "admin@pemdi.go.id", nip: "–", instansi: "Kemendagri", role: "Super Admin", status: "Aktif", lastLogin: "14 Jul 2026, 09:00" },
 ];
 
 export const ROLES_DATA = [

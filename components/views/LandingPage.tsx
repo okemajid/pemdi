@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen } from "lucide-react";
-import { Page, Maturitas } from "@/lib/types";
+import { Page, Kematangan } from "@/lib/types";
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
 
 export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
@@ -31,9 +31,9 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
   }, []);
 
   const features = [
-    { icon: ClipboardList, title: "Penilaian Mandiri", desc: "Lakukan penilaian maturitas digital secara mandiri berdasarkan indikator PEMDI yang komprehensif." },
-    { icon: Upload, title: "Upload Bukti Dukung", desc: "Unggah dokumen pendukung untuk setiap kriteria dan level maturitas yang diampu OPD Anda." },
-    { icon: BarChart3, title: "Analisis Capaian", desc: "Pantau progres dan analisis capaian maturitas digital pemerintah daerah secara real-time." },
+    { icon: ClipboardList, title: "Penilaian Mandiri", desc: "Lakukan penilaian kematangan digital secara mandiri berdasarkan indikator PEMDI yang komprehensif." },
+    { icon: Upload, title: "Upload Bukti Dukung", desc: "Unggah dokumen pendukung untuk setiap kriteria dan level kematangan yang diampu OPD Anda." },
+    { icon: BarChart3, title: "Analisis Capaian", desc: "Pantau progres dan analisis capaian kematangan digital pemerintah daerah secara real-time." },
     { icon: Shield, title: "Keamanan Data", desc: "Sistem keamanan berlapis dengan enkripsi data dan manajemen akses berbasis peran (RBAC)." },
   ];
 
@@ -55,11 +55,11 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
             </div>
             <div>
               <p className="text-white font-extrabold text-sm leading-none">PEMDI</p>
-              <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide">Penilaian Maturitas Digital Indonesia</p>
+              <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide">Penilaian Kematangan Digital Indonesia</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <a href="/Panduan_PEMDI.md" download className="text-white/60 text-xs hover:text-white transition-colors">Panduan</a>
+            <button onClick={() => setPage("panduan")} className="text-white/60 text-xs hover:text-white transition-colors">Panduan</button>
             <button onClick={() => setPage("tentang")} className="text-white/60 text-xs hover:text-white transition-colors">Tentang</button>
             <button onClick={() => setPage("login")} className="px-4 py-1.5 text-xs font-bold text-white rounded-lg border border-white/20 hover:bg-white/10 transition-colors">
               Masuk
@@ -74,22 +74,22 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
         <div className="relative max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-white/80 text-xs font-semibold mb-8">
             <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            Sistem Resmi Pemerintah Kabupaten Ciamis — Tahun Anggaran 2025
+            Sistem Resmi Pemerintah Kabupaten Ciamis — Tahun Anggaran 2026
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
             Penilaian Mandiri<br />
             <span style={{ background: "linear-gradient(90deg, #60A5FA, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Pemerintah Digital Ciamis</span>
           </h1>
           <p className="text-white/60 text-base max-w-2xl mx-auto leading-relaxed mb-8">
-            Platform terpadu untuk mengukur, memantau, dan meningkatkan maturitas transformasi digital di lingkungan Pemerintah Kabupaten Ciamis berdasarkan standar PEMDI.
+            Platform terpadu untuk mengukur, memantau, dan meningkatkan kematangan transformasi digital di lingkungan Pemerintah Kabupaten Ciamis berdasarkan standar PEMDI.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button onClick={() => setPage("login")} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white rounded-xl transition-all hover:scale-105" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
               Mulai Penilaian <ArrowRight size={15} />
             </button>
-            <a href="/Panduan_PEMDI.md" download className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white/80 rounded-xl border border-white/20 hover:bg-white/10 transition-colors">
-              <BookOpen size={15} /> Unduh Panduan
-            </a>
+            <button onClick={() => setPage("panduan")} className="flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white/80 rounded-xl border border-white/20 hover:bg-white/10 transition-colors">
+              <BookOpen size={15} /> Lihat Panduan
+            </button>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-extrabold text-gray-900">Fitur Unggulan</h2>
-            <p className="text-gray-500 text-sm mt-2">Solusi lengkap untuk manajemen penilaian maturitas digital pemerintah</p>
+            <p className="text-gray-500 text-sm mt-2">Solusi lengkap untuk manajemen penilaian kematangan digital pemerintah</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {features.map((f, i) => (
@@ -130,13 +130,13 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
         </div>
       </section>
 
-      {/* Maturitas levels */}
+      {/* Kematangan levels */}
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-extrabold text-gray-900 text-center mb-2">Model Maturitas 5 Level</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900 text-center mb-2">Model Kematangan 5 Level</h2>
           <p className="text-gray-500 text-sm text-center mb-10">Pengukuran bertahap dari inisiasi hingga pemimpin digital nasional</p>
           <div className="flex flex-col sm:flex-row gap-3">
-            {([1, 2, 3, 4, 5] as Maturitas[]).map(l => (
+            {([1, 2, 3, 4, 5] as Kematangan[]).map(l => (
               <div key={l} className="flex-1 rounded-xl p-4 border-2" style={{ borderColor: MATURITY_COLORS[l], background: `${MATURITY_COLORS[l]}08` }}>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 text-white text-sm font-extrabold" style={{ background: MATURITY_COLORS[l] }}>{l}</div>
                 <p className="font-bold text-xs text-gray-800 leading-snug">{MATURITY_LABELS[l]}</p>

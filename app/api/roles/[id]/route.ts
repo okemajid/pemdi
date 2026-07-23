@@ -28,7 +28,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const { id } = await params;
     
     // Check if role is in use
-    const rows = await query(`SELECT role FROM pemdi_users WHERE role = (SELECT nama FROM roles WHERE id = ?) LIMIT 1`, [id]) as any[];
+    const rows = await query(`SELECT role FROM users WHERE role = (SELECT nama FROM roles WHERE id = ?) LIMIT 1`, [id]) as any[];
     if (rows && rows.length > 0) {
       return NextResponse.json({ error: "Cannot delete role because it is in use by one or more users" }, { status: 400 });
     }

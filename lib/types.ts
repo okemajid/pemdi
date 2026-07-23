@@ -1,12 +1,12 @@
-export type Page = "landing" | "login" | "dashboard" | "penilaian" | "detail" | "users" | "roles" | "instansi" | "laporan" | "indikator_crud" | "kriteria_crud" | "log_activity" | "tentang";
+export type Page = "landing" | "login" | "dashboard" | "penilaian" | "detail" | "users" | "roles" | "instansi" | "laporan" | "indikator_crud" | "kriteria_crud" | "log_activity" | "tentang" | "panduan";
 export type Role = "Super Admin" | "Admin Instansi" | "Operator OPD" | "Viewer";
-export type Maturitas = 1 | 2 | 3 | 4 | 5;
+export type Kematangan = 1 | 2 | 3 | 4 | 5;
 export type UploadStatus = "uploaded" | "pending" | "rejected" | "empty";
 
 export interface KriteriaLevel {
   id?: string;
   indikatorId?: string;
-  level: Maturitas;
+  level: Kematangan;
   label: string;
   bobot: number;
   deskripsi: string;

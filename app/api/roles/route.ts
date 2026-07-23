@@ -6,7 +6,7 @@ export async function GET() {
     const rows = await query(
       `SELECT r.id, r.nama, r.deskripsi, r.permissions, COUNT(u.id) as userCount
        FROM roles r
-       LEFT JOIN pemdi_users u ON r.nama = u.role
+       LEFT JOIN users u ON r.nama = u.role
        GROUP BY r.id, r.nama, r.deskripsi, r.permissions
        ORDER BY r.nama ASC`
     );

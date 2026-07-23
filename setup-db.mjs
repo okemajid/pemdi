@@ -1,15 +1,17 @@
+import 'dotenv/config';
 import mysql from "mysql2/promise";
 
 async function setup() {
   const connection = await mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "root123",
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
   });
 
   try {
-    await connection.query(`CREATE DATABASE IF NOT EXISTS pemdi;`);
-    await connection.query(`USE pemdi;`);
+    const dbName = process.env.DB_NAME;
+    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+    await connection.query(`USE \`${dbName}\`;`);
 
     await connection.query(`
       CREATE TABLE IF NOT EXISTS aspek (

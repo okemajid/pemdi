@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
-import { Maturitas, Aspek } from "@/lib/types";
+import { Kematangan, Aspek } from "@/lib/types";
 
 export function LaporanView() {
   const [aspeks, setAspeks] = useState<Aspek[]>([]);
@@ -82,14 +82,14 @@ export function LaporanView() {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-gray-800">{a.no}. {a.nama}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: MATURITY_COLORS[level as Maturitas] }}>
-                        {MATURITY_LABELS[level as Maturitas]}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: MATURITY_COLORS[level as Kematangan] }}>
+                        {MATURITY_LABELS[level as Kematangan]}
                       </span>
                       <span className="text-xs font-extrabold text-gray-900">{nilai.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: MATURITY_COLORS[level as Maturitas] }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: MATURITY_COLORS[level as Kematangan] }} />
                   </div>
                 </div>
               );

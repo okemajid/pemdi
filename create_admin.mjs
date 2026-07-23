@@ -1,10 +1,11 @@
+import 'dotenv/config';
 import mysql from "mysql2/promise";
 
 const pool = mysql.createPool({ 
-  host: "localhost", 
-  user: "root", 
-  password: "root123", 
-  database: "pemdi" 
+  host: process.env.DB_HOST, 
+  user: process.env.DB_USER, 
+  password: process.env.DB_PASSWORD, 
+  database: process.env.DB_NAME 
 });
 
 async function run() {
@@ -21,7 +22,7 @@ async function run() {
 
     // Insert or Replace
     await pool.query(
-      `REPLACE INTO pemdi_users (id, nama, email, nip, instansi, role, status, last_login, password) 
+      `REPLACE INTO users (id, nama, email, nip, instansi, role, status, last_login, password) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, nama, email, nip, instansi, role, status, lastLogin, password]
     );
