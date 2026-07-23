@@ -35,6 +35,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       [dbFilePath, id]
     );
 
+    // Recalculate nilai_capaian for the indikator based on verified kriteria only
+    const verifiedKriteria = await query(
+      `SELECT SUM(bobot) as total_bobot FROM kriteria WHERE indikator_id = ? AND status = 'verified'`,
+      [indikatorId]
+    ) as any[];
+
+    const totalBobot = verifiedKriteria[0]?.total_bobot;
+
+    let predikat = "Belum dinilai";
+    if (totalBobot > 0 && totalBobot <= 1) predikat = "Inisiasi / Rintisan";
+    else if (totalBobot > 1 && totalBobot <= 2) predikat = "Emerging / Cukup";
+    else if (totalBobot > 2 && totalBobot <= 3) predikat = "Berkembang Baik";
+    else if (totalBobot > 3 && totalBobot <= 4) predikat = "Embedded / Dapat Baik";
+    else if (totalBobot > 4) predikat = "Leading / Pemimpin";
+    else if (totalBobot === 0) predikat = "Belum Ada Nilai";
+
+    await query(
+      `UPDATE indikator SET nilai_capaian = ?, predikat = ? WHERE id = ?`,
+      [totalBobot === null || totalBobot === undefined ? null : totalBobot, totalBobot === null || totalBobot === undefined ? null : predikat, indikatorId]
+    );
+
     return NextResponse.json({ success: true, file: dbFilePath });
   } catch (error) {
     console.error("Error uploading kriteria:", error);

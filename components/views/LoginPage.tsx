@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShieldCheck, Mail, Lock, RefreshCw, Eye, EyeOff, ArrowLeft, CheckCircle, Send, AlertCircle } from "lucide-react";
 import { Page } from "@/lib/types";
 import Image from "next/image";
+
+const IMAGES = [
+  "/ciamis1.jpg",
+  "/ciamis2.png",
+  "/ciamis3.jpg",
+];
 
 export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => void; onLoginSuccess?: (u: any) => void }) {
   const [email, setEmail] = useState("admin@pemdi.go.id");
@@ -9,6 +15,14 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Forgot password state
   const [mode, setMode] = useState<"login" | "forgot" | "sent">("login");
@@ -26,7 +40,7 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
         body: JSON.stringify({ username: email, password: pass })
       });
       const data = await res.json();
-
+      
       if (res.ok && data.success) {
         if (onLoginSuccess) {
           onLoginSuccess(data.user);
@@ -77,19 +91,25 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
   return (
     <div className="min-h-screen flex" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Left panel */}
-      <div className="hidden lg:flex flex-1 flex-col justify-between p-10 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#0d1f40 0%,#1B3A6B 100%)" }}>
-        {/* Hero image */}
-        {/* <div className="absolute inset-0 flex items-end justify-center pointer-events-none select-none" style={{ paddingBottom: "100px" }}>
-          <Image
-            // src="/pemdi_login_hero.png"
-            // alt="Kota Ciamis Digital"
-            // width={520}
-            // height={370}
-            // className="object-contain opacity-80"
-            // priority
-          />
-        </div> */}
-
+      <div className="hidden lg:flex flex-1 flex-col justify-between p-10 relative overflow-hidden bg-gray-900">
+        {/* Slideshow background */}
+        {IMAGES.map((src, idx) => (
+          <div
+            key={src}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentImage ? 'opacity-40' : 'opacity-0'}`}
+          >
+            <Image
+              src={src}
+              alt={`Ciamis ${idx + 1}`}
+              fill
+              className="object-cover"
+              priority={idx === 0}
+            />
+          </div>
+        ))}
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f40] via-[#0d1f40]/80 to-transparent mix-blend-multiply" />
+        
         {/* Top branding */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
@@ -97,31 +117,31 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
           </div>
           <div>
             <p className="text-white font-extrabold text-base">PEMDI</p>
-            <p className="text-white/40 text-[10px] uppercase tracking-wider">Penilaian Kematangan Digital</p>
+            <p className="text-white/70 text-[10px] uppercase tracking-wider">Penilaian Kematangan Digital</p>
           </div>
         </div>
 
         {/* Bottom content */}
         <div className="relative z-10">
-          <h2 className="text-3xl font-extrabold text-white leading-tight mb-4">
+          <h2 className="text-3xl font-extrabold text-white leading-tight mb-4 drop-shadow-md">
             Sistem Penilaian<br />Mandiri Pemerintah<br />Digital Indonesia
           </h2>
-          <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-            Platform resmi Kemendagri untuk pengukuran dan peningkatan kematangan transformasi digital pemerintah daerah seluruh Indonesia.
+          <p className="text-white/80 text-sm leading-relaxed max-w-sm drop-shadow">
+            Platform resmi pengukuran kematangan transformasi digital di lingkungan Pemerintah Kabupaten Ciamis.
           </p>
 
           <div className="mt-8 space-y-3">
-            {[{ n: "514+", l: "Pemerintah Daerah" }, { n: "87", l: "Indikator PEMDI" }, { n: "5", l: "Level Kematangan" }].map((s, i) => (
+            {[{ n: "29", l: "OPD" }, { n: "27", l: "Kecamatan" }, { n: "258", l: "Desa" }].map((s, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                <span className="text-white font-bold text-sm">{s.n}</span>
-                <span className="text-white/40 text-xs">{s.l}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]" />
+                <span className="text-white font-bold text-sm drop-shadow">{s.n}</span>
+                <span className="text-white/70 text-xs font-medium drop-shadow">{s.l}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="relative z-10 text-white/20 text-xs">© 2026 Pemerintah Kabupaten Ciamis</p>
+        <p className="relative z-10 text-white/50 text-xs font-medium tracking-wide">© 2026 Pemerintah Kabupaten Ciamis</p>
       </div>
 
       {/* Right panel */}

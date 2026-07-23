@@ -18,7 +18,8 @@ async function setup() {
         id VARCHAR(50) PRIMARY KEY,
         no INT NOT NULL,
         nama VARCHAR(255) NOT NULL,
-        bobot INT NOT NULL
+        bobot INT NOT NULL,
+        tahun INT NOT NULL DEFAULT 2026
       );
     `);
 
@@ -74,8 +75,8 @@ async function setup() {
     const [rows] = await connection.query(`SELECT COUNT(*) as count FROM aspek`);
     if (rows[0].count === 0) {
       console.log("Seeding initial data...");
-      await connection.query(`INSERT INTO aspek (id, no, nama, bobot) VALUES ('a1', 1, 'Tata Kelola dan Manajemen', 31)`);
-      await connection.query(`INSERT INTO aspek (id, no, nama, bobot) VALUES ('a2', 2, 'Pengembangan', 24)`);
+      await connection.query(`INSERT INTO aspek (id, no, nama, bobot, tahun) VALUES ('a1', 1, 'Tata Kelola dan Manajemen', 31, 2026)`);
+      await connection.query(`INSERT INTO aspek (id, no, nama, bobot, tahun) VALUES ('a2', 2, 'Pengembangan', 24, 2026)`);
       
       await connection.query(`INSERT INTO indikator (id, no, nama, tipe, bobot, nilai_capaian, predikat, aspek_id) VALUES ('i1', '1.1', 'Tingkat Ketersediaan Data Kinerja Pemerintah Digital', 'Internal', 6, 3.5, 'Berkembang Baik', 'a1')`);
       

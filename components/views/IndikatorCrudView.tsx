@@ -16,14 +16,17 @@ interface Indikator {
   bobot: number;
   aspekId: string;
   aksesUsers?: string[];
+  nilaiCapaian?: number | null;
 }
 
 export function IndikatorCrudView({
   setPage,
   setKriteriaIndikator,
+  selectedYear,
 }: {
   setPage: (p: import("@/lib/types").Page) => void;
-  setKriteriaIndikator: (i: { id: string; nama: string; no: string }) => void;
+  setKriteriaIndikator: (i: { id: string; nama: string; no: string; tipe: string; nilaiCapaian?: number | null }) => void;
+  selectedYear: string;
 }) {
   const [search, setSearch] = useState("");
   const [showIndikatorModal, setShowIndikatorModal] = useState(false);
@@ -74,14 +77,14 @@ export function IndikatorCrudView({
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedYear]);
 
   async function fetchData() {
     setLoading(true);
     try {
       const [resAspek, resIndikator, resUsers] = await Promise.all([
-        fetch("/api/aspek"),
-        fetch("/api/indikator"),
+        fetch(`/api/aspek?tahun=${selectedYear}`),
+        fetch(`/api/indikator?tahun=${selectedYear}`),
         fetch("/api/users")
       ]);
       
@@ -492,7 +495,7 @@ export function IndikatorCrudView({
                             <div className="flex gap-2 justify-center">
                               <button
                                 onClick={() => {
-                                  setKriteriaIndikator({ id: ind.id, nama: ind.nama, no: ind.no });
+                                  setKriteriaIndikator({ id: ind.id, nama: ind.nama, no: ind.no, tipe: ind.tipe, nilaiCapaian: ind.nilaiCapaian });
                                   setPage("kriteria_crud");
                                 }}
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"

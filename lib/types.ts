@@ -1,7 +1,7 @@
 export type Page = "landing" | "login" | "dashboard" | "penilaian" | "detail" | "users" | "roles" | "instansi" | "laporan" | "indikator_crud" | "kriteria_crud" | "log_activity" | "tentang" | "panduan";
 export type Role = "Super Admin" | "Admin Instansi" | "Operator OPD" | "Viewer";
 export type Kematangan = 1 | 2 | 3 | 4 | 5;
-export type UploadStatus = "uploaded" | "pending" | "rejected" | "empty";
+export type UploadStatus = "uploaded" | "pending" | "rejected" | "empty" | "verified";
 
 export interface KriteriaLevel {
   id?: string;

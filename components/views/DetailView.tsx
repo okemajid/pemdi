@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Upload, Eye, Download } from "lucide-react";
-import { Indikator, KriteriaLevel } from "@/lib/types";
+import { Upload, Eye, Download, Check, X } from "lucide-react";
+import { Indikator, KriteriaLevel, UserItem } from "@/lib/types";
 import { MATURITY_LABELS, MATURITY_COLORS } from "@/lib/mock-data";
 import { UploadModal } from "@/components/ui/UploadModal";
 import { Kematangan } from "@/lib/types";
 
-export function DetailView({ indikator }: { indikator: Indikator | null }) {
+export function DetailView({ indikator, currentUser }: { indikator: Indikator | null, currentUser?: UserItem | null }) {
   const [uploadKriteria, setUploadKriteria] = useState<{ k: KriteriaLevel; iNama: string } | null>(null);
   const [localKriteria, setLocalKriteria] = useState<KriteriaLevel[]>([]);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [nilaiEksternal, setNilaiEksternal] = useState<string>("");
+  const [savingEksternal, setSavingEksternal] = useState(false);
 
   useEffect(() => {
     if (indikator) {
       setLocalKriteria(indikator.kriteria || []);
       fetchKriteria();
+      if (indikator.tipe === "Eksternal") {
+        setNilaiEksternal(indikator.nilaiCapaian ? (indikator.nilaiCapaian * 20).toFixed(2) : "0");
+      }
     }
   }, [indikator]);
 
@@ -25,6 +31,54 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
       }
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  async function handleAction(kriteriaId: string, action: "verify" | "reject" | "cancel") {
+    if (isVerifying) return;
+    setIsVerifying(true);
+    try {
+      const res = await fetch(`/api/kriteria/${kriteriaId}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      if (res.ok) {
+        await fetchKriteria();
+      } else {
+        alert("Gagal memproses dokumen.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan.");
+    } finally {
+      setIsVerifying(false);
+    }
+  }
+
+  async function handleSaveEksternal() {
+    setSavingEksternal(true);
+    try {
+      const numVal = parseFloat(nilaiEksternal);
+      if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+         alert("Masukkan nilai antara 0 - 100");
+         setSavingEksternal(false);
+         return;
+      }
+      const res = await fetch(`/api/indikator/${indikator!.id}/nilai`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nilaiEksternal: numVal })
+      });
+      if (res.ok) {
+        alert("Nilai berhasil disimpan. Perubahan akan terlihat setelah Anda memuat ulang halaman atau kembali ke menu sebelumnya.");
+      } else {
+        alert("Gagal menyimpan nilai");
+      }
+    } catch {
+      alert("Terjadi kesalahan sistem");
+    } finally {
+      setSavingEksternal(false);
     }
   }
 
@@ -61,7 +115,56 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
         <h2 className="text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide">REKOMENDASI INDIKATOR</h2>
         <p className="text-xs text-gray-400 mb-4">N/A</p>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        {indikator.tipe === "Eksternal" ? (
+          <div className="bg-[#2a303c] rounded-xl border border-gray-700 shadow-sm overflow-hidden p-5 text-gray-200" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <div className="bg-[#fff8dc] text-yellow-800 p-4 rounded-md mb-6 border border-yellow-200">
+              <p className="font-bold text-sm mb-1">Indikator Eksternal!</p>
+              <p className="text-xs">Nilai Indikator akan terisi secara otomatis oleh sistem yang terintegrasi.</p>
+            </div>
+            
+            <div className="space-y-4 max-w-md text-xs">
+              <div className="flex items-center">
+                <div className="w-40 text-gray-400">Konversi</div>
+                <div className="w-10 text-center">:</div>
+                <div className="flex-1 font-semibold text-white">100</div>
+              </div>
+              <div className="flex items-center">
+                <div className="w-40 text-gray-400">Nilai Eksternal (0 - 100)</div>
+                <div className="w-10 text-center">:</div>
+                <div className="flex-1 font-semibold text-white">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={nilaiEksternal}
+                    onChange={(e) => setNilaiEksternal(e.target.value)}
+                    className="w-full border border-gray-600 bg-gray-800 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="w-40 text-gray-400">Nilai Final (Skala 1 - 5)</div>
+                <div className="w-10 text-center">:</div>
+                <div className="flex-1 font-bold text-emerald-400">
+                  {nilaiEksternal ? (parseFloat(nilaiEksternal) / 20).toFixed(2) : "0.00"}
+                </div>
+              </div>
+            </div>
+            {currentUser?.role !== 'Super Admin' && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleSaveEksternal}
+                  disabled={savingEksternal}
+                  className="px-5 py-2 flex items-center gap-2 text-xs font-bold text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-70 bg-blue-600"
+                >
+                  {savingEksternal ? "Menyimpan..." : "Simpan Konversi Nilai"}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
@@ -77,7 +180,12 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
                 const kriteriaList = kriteriaByLevel[level] || [];
                 const levelLabel = MATURITY_LABELS[level as Kematangan] || `Level ${level}`;
                 const levelColor = MATURITY_COLORS[level as Kematangan];
-                const uploaded = kriteriaList.filter(k => k.status === 'uploaded').length;
+                const verifiedCount = kriteriaList.filter(k => k.status === 'verified').length;
+                const verifiedBobot = kriteriaList.filter(k => k.status === 'verified').reduce((sum, k) => sum + Number(k.bobot), 0);
+                const totalBobot = kriteriaList.reduce((sum, k) => sum + Number(k.bobot), 0);
+
+                const displayVerified = (Math.round(verifiedBobot * 10) / 10).toFixed(2);
+                const displayTotal = (Math.round(totalBobot * 10) / 10).toFixed(2);
 
                 return (
                   <React.Fragment key={level}>
@@ -88,7 +196,7 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
                         {levelLabel}
                       </td>
                       <td className="py-2.5 px-4 text-center text-[11px] font-semibold text-gray-500">
-                        PM : {uploaded} / {kriteriaList.length}
+                        PM : {displayVerified} / {displayTotal}
                       </td>
                       <td colSpan={2}></td>
                     </tr>
@@ -99,16 +207,20 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
                         <td className="py-3 px-4 text-center text-gray-500">{idx + 1}</td>
                         <td className="py-3 px-4 leading-relaxed pr-8 text-gray-700">{k.deskripsi}</td>
                         <td className="py-3 px-4 text-center">
-                          {k.status === 'uploaded' ? (
+                          {k.status === 'verified' ? (
+                            <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold px-2.5 py-1 rounded-full">Terverifikasi</span>
+                          ) : k.status === 'rejected' ? (
+                            <span className="bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2.5 py-1 rounded-full">Ditolak</span>
+                          ) : k.status === 'uploaded' ? (
                             <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full">Selesai</span>
                           ) : (
-                            <span className="bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold px-2.5 py-1 rounded-full">Belum Upload</span>
+                            <span className="bg-gray-50 text-gray-500 border border-gray-200 text-[10px] font-bold px-2.5 py-1 rounded-full">Belum Upload</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-center font-semibold text-gray-700">{k.bobot}</td>
+                        <td className="py-3 px-4 text-center font-semibold text-gray-700">{Number(k.bobot).toFixed(2)}</td>
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-1">
-                            {k.status === 'uploaded' && (
+                            {(k.status === 'uploaded' || k.status === 'verified') && (
                               <>
                                 <button
                                   onClick={() => window.open(k.file, '_blank')}
@@ -131,13 +243,45 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
                                 </button>
                               </>
                             )}
-                            <button
-                              onClick={() => setUploadKriteria({ k, iNama: indikator.nama })}
-                              className="bg-amber-500 hover:bg-amber-600 text-white rounded p-1.5 transition-colors"
-                              title={k.status === 'uploaded' ? "Timpa Data Dukung" : "Upload Data Dukung"}
-                            >
-                              <Upload size={12} />
-                            </button>
+                            
+                            {/* Super Admin Verification Buttons */}
+                            {currentUser?.role === 'Super Admin' && (k.status === 'uploaded' || k.status === 'rejected') && (
+                              <button
+                                onClick={() => handleAction(k.id!, "verify")}
+                                className="bg-blue-500 hover:bg-blue-600 text-white rounded p-1.5 transition-colors"
+                                title="Verifikasi Dokumen"
+                              >
+                                <Check size={12} />
+                              </button>
+                            )}
+                            {currentUser?.role === 'Super Admin' && (k.status === 'uploaded' || k.status === 'verified') && (
+                              <button
+                                onClick={() => handleAction(k.id!, "reject")}
+                                className="bg-red-500 hover:bg-red-600 text-white rounded p-1.5 transition-colors"
+                                title="Tolak / Revisi Dokumen"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
+                            {currentUser?.role === 'Super Admin' && (k.status === 'verified' || k.status === 'rejected') && (
+                              <button
+                                onClick={() => handleAction(k.id!, "cancel")}
+                                className="bg-gray-500 hover:bg-gray-600 text-white rounded p-1.5 transition-colors"
+                                title="Batalkan Aksi (Kembali ke Uploaded)"
+                              >
+                                <Upload size={12} />
+                              </button>
+                            )}
+
+                            {currentUser?.role !== 'Super Admin' && k.status !== 'verified' && (
+                              <button
+                                onClick={() => setUploadKriteria({ k, iNama: indikator.nama })}
+                                className="bg-amber-500 hover:bg-amber-600 text-white rounded p-1.5 transition-colors"
+                                title={k.status === 'uploaded' ? "Timpa Data Dukung" : "Upload Data Dukung"}
+                              >
+                                <Upload size={12} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -154,7 +298,8 @@ export function DetailView({ indikator }: { indikator: Indikator | null }) {
               })}
             </tbody>
           </table>
-        </div>
+          </div>
+        )}
       </div>
 
       {uploadKriteria && (

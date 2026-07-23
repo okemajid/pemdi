@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Layers, CheckCircle, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { Page, UploadStatus } from "@/lib/types";
@@ -8,31 +8,36 @@ import { Page, UploadStatus } from "@/lib/types";
 interface KriteriaLevelData { level: number; label: string; bobot: number; deskripsi: string; status: UploadStatus; file?: string }
 interface IndikatorData { id: number; no: string; nama: string; tipe: string; bobot: number; nilaiCapaian: number | null; predikat: string | null; kriteria: KriteriaLevelData[] }
 interface AspekData { id: number; no: number; nama: string; bobot: number; indikators: IndikatorData[] }
-interface StatsData { total: number; uploaded: number; pending: number; rejected: number; empty: number }
+interface StatsData { total: number; verified: number; uploaded: number; pending: number; rejected: number; empty: number }
 interface SessionData { instansi: string; kode: string; kategori: string }
 interface DashboardResponse { session: SessionData; aspeks: AspekData[]; stats: StatsData; }
 
-export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
+export function DashboardView({ setPage, selectedYear, currentUser }: { setPage: (p: Page) => void; selectedYear: string; currentUser: any }) {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchDashboard = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const url = currentUser.role === "Super Admin" 
+        ? `/api/dashboard?tahun=${selectedYear}` 
+        : `/api/dashboard?tahun=${selectedYear}&userId=${currentUser.id}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("Gagal memuat data dashboard");
+      const json: DashboardResponse = await res.json();
+      setData(json);
+    } catch (e: any) {
+      setError(e.message ?? "Terjadi kesalahan");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedYear, currentUser.role, currentUser.id]);
+
   useEffect(() => {
-    let ignore = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/dashboard", { cache: "no-store" });
-        if (!res.ok) throw new Error("Gagal memuat data dashboard");
-        const json: DashboardResponse = await res.json();
-        if (!ignore) setData(json);
-      } catch (e: any) {
-        if (!ignore) setError(e.message ?? "Terjadi kesalahan");
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    })();
-    return () => { ignore = true; };
-  }, []);
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   if (loading) {
     return (
@@ -52,16 +57,17 @@ export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
   }
 
   const { session: SESSION, aspeks, stats } = data;
-  const pct = stats.total > 0 ? Math.round((stats.uploaded / stats.total) * 100) : 0;
-  const nilaiRata = aspeks.flatMap(a => a.indikators).filter(i => i.nilaiCapaian !== null).reduce((s, i, _, a) => s + (i.nilaiCapaian! / a.length), 0) || 0;
+  const pct = stats.total > 0 ? Math.round((stats.verified / stats.total) * 100) : 0;
+  const nilaiRata = aspeks.flatMap(a => a.indikators).filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / 100)), 0) || 0;
 
   const radarData = aspeks.map(a => ({
     domain: a.nama.split(" ").slice(0, 2).join(" "),
-    capaian: a.indikators.filter(i => i.nilaiCapaian).reduce((s, i, _, arr) => s + (i.nilaiCapaian! / arr.length), 0) || 0,
+    capaian: a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / (a.bobot || 1))), 0) || 0,
     target: 5,
   }));
 
   const pieData = [
+    { name: "Terverifikasi", value: stats.verified, color: "#3B82F6" },
     { name: "Terunggah", value: stats.uploaded, color: "#22C55E" },
     { name: "Review", value: stats.pending, color: "#F59E0B" },
     { name: "Ditolak", value: stats.rejected, color: "#EF4444" },
@@ -100,8 +106,8 @@ export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { l: "Total Kriteria", v: stats.total, s: "semua aspek", c: "#1B3A6B", i: Layers },
-          { l: "Dokumen Lengkap", v: stats.uploaded, s: `${pct}% terpenuhi`, c: "#22C55E", i: CheckCircle },
-          { l: "Menunggu Review", v: stats.pending, s: "sedang diverifikasi", c: "#F59E0B", i: Clock },
+          { l: "Dokumen Lengkap", v: stats.verified, s: `${pct}% terpenuhi`, c: "#22C55E", i: CheckCircle },
+          { l: "Menunggu Review", v: stats.uploaded, s: "sedang diverifikasi", c: "#F59E0B", i: Clock },
           { l: "Perlu Tindakan", v: stats.rejected + stats.empty, s: "segera lengkapi", c: "#EF4444", i: AlertCircle },
         ].map((s, i) => (
           <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 flex items-start gap-3">
@@ -169,7 +175,7 @@ export function DashboardView({ setPage }: { setPage: (p: Page) => void }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             {aspeks.map(a => {
               const total = a.indikators.flatMap(i => i.kriteria).length;
-              const done = a.indikators.flatMap(i => i.kriteria).filter(k => k.status === "uploaded").length;
+              const done = a.indikators.flatMap(i => i.kriteria).filter(k => k.status === "verified").length;
               const pctAspek = total > 0 ? Math.round((done / total) * 100) : 0;
               return (
                 <div key={a.id}>

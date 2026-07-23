@@ -1,15 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { UploadStatus } from "@/lib/types";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const aspeksRows = await query("SELECT * FROM aspek ORDER BY no ASC") as any[];
-    const indikatorsRows = await query("SELECT * FROM indikator ORDER BY CAST(SUBSTRING_INDEX(no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(no, '.', -1) AS UNSIGNED)") as any[];
+    const { searchParams } = new URL(req.url);
+    const tahun = parseInt(searchParams.get("tahun") || "2026", 10);
+    const userId = searchParams.get("userId");
+
+    const aspeksRows = await query("SELECT * FROM aspek WHERE tahun = ? ORDER BY no ASC", [tahun]) as any[];
+    
+    let indikatorsRows: any[];
+    if (userId) {
+      indikatorsRows = await query(`
+        SELECT i.* 
+        FROM indikator i
+        JOIN indikator_akses ia ON i.id = ia.indikator_id
+        WHERE ia.user_id = ?
+        ORDER BY CAST(SUBSTRING_INDEX(i.no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(i.no, '.', -1) AS UNSIGNED)
+      `, [userId]) as any[];
+    } else {
+      indikatorsRows = await query("SELECT * FROM indikator ORDER BY CAST(SUBSTRING_INDEX(no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(no, '.', -1) AS UNSIGNED)") as any[];
+    }
     const kriteriaRows = await query(`
-      SELECT k.*, b.status as upload_status, b.file_name 
+      SELECT k.* 
       FROM kriteria k 
-      LEFT JOIN bukti_dukung b ON k.id = b.kriteria_id 
       ORDER BY k.level ASC
     `) as any[];
 
@@ -24,8 +39,8 @@ export async function GET() {
         label: k.label,
         bobot: k.bobot,
         deskripsi: k.deskripsi,
-        status: (k.upload_status || "empty") as UploadStatus,
-        file: k.file_name || undefined
+        status: (k.status || "empty"),
+        file: k.file || undefined
       });
     });
 
@@ -52,15 +67,16 @@ export async function GET() {
       nama: a.nama,
       bobot: a.bobot,
       indikators: indikatorMap.get(a.id) || []
-    }));
+    })).filter(a => !userId || a.indikators.length > 0);
 
     // Stats calculation
-    let total = 0, uploaded = 0, pending = 0, rejected = 0, empty = 0;
+    let total = 0, uploaded = 0, pending = 0, rejected = 0, empty = 0, verified = 0;
     aspeks.forEach(a => {
       a.indikators.forEach((i: any) => {
         i.kriteria.forEach((k: any) => {
           total++;
-          if (k.status === "uploaded") uploaded++;
+          if (k.status === "verified") verified++;
+          else if (k.status === "uploaded") uploaded++;
           else if (k.status === "pending") pending++;
           else if (k.status === "rejected") rejected++;
           else empty++;
@@ -78,7 +94,7 @@ export async function GET() {
     return NextResponse.json({
       session,
       aspeks,
-      stats: { total, uploaded, pending, rejected, empty }
+      stats: { total, verified, uploaded, pending, rejected, empty }
     });
   } catch (error: any) {
     console.error("Dashboard error:", error);

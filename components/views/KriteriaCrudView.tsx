@@ -16,6 +16,8 @@ interface IndikatorInfo {
   id: string;
   nama: string;
   no: string;
+  tipe: string;
+  nilaiCapaian?: number | null;
 }
 
 const LEVEL_LABELS: Record<number, string> = {
@@ -47,6 +49,8 @@ export function KriteriaCrudView({
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const [nilaiEksternal, setNilaiEksternal] = useState<string>("");
+
   const [form, setForm] = useState({
     level: 1,
     label: LEVEL_LABELS[1],
@@ -55,7 +59,14 @@ export function KriteriaCrudView({
   });
 
   useEffect(() => {
-    if (indikator) fetchKriteria();
+    if (indikator) {
+      if (indikator.tipe === "Eksternal") {
+        setNilaiEksternal(indikator.nilaiCapaian ? (indikator.nilaiCapaian * 20).toFixed(2) : "0");
+        setLoading(false);
+      } else {
+        fetchKriteria();
+      }
+    }
   }, [indikator]);
 
   async function fetchKriteria() {
@@ -86,7 +97,7 @@ export function KriteriaCrudView({
     setForm({
       level: k.level,
       label: k.label,
-      bobot: k.bobot.toString(),
+      bobot: Number(k.bobot).toFixed(2),
       deskripsi: k.deskripsi,
     });
     setShowModal(true);
@@ -137,6 +148,33 @@ export function KriteriaCrudView({
     }
   }
 
+  async function handleSaveEksternal() {
+    setSaving(true);
+    try {
+      const numVal = parseFloat(nilaiEksternal);
+      if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+         alert("Masukkan nilai antara 0 - 100");
+         setSaving(false);
+         return;
+      }
+      const res = await fetch(`/api/indikator/${indikator!.id}/nilai`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nilaiEksternal: numVal })
+      });
+      if (res.ok) {
+        alert("Nilai berhasil disimpan");
+        // Update local indikator state if possible, or just stay
+      } else {
+        alert("Gagal menyimpan nilai");
+      }
+    } catch {
+      alert("Terjadi kesalahan sistem");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (!indikator) {
     return (
       <div className="p-10 text-center text-gray-400">
@@ -162,7 +200,50 @@ export function KriteriaCrudView({
         </div>
       </div>
 
-      {/* Per-level table */}
+      {indikator.tipe === "Eksternal" ? (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6 max-w-2xl">
+          <div className="bg-blue-50 text-blue-800 p-4 rounded-md mb-6 border border-blue-200">
+            <p className="font-bold text-sm mb-1">Indikator Eksternal</p>
+            <p className="text-xs">Silakan masukkan nilai konversi (0-100) untuk indikator ini. Sistem akan otomatis menghitung nilai final berdasarkan nilai yang Anda masukkan.</p>
+          </div>
+          
+          <div className="space-y-5">
+            <div className="flex items-center">
+              <label className="w-48 text-sm font-semibold text-gray-700">Nilai Eksternal (0 - 100)</label>
+              <div className="w-10 text-center">:</div>
+              <div className="flex-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={nilaiEksternal}
+                  onChange={(e) => setNilaiEksternal(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex items-center text-gray-500 text-sm">
+              <div className="w-48">Nilai Final (Skala 1 - 5)</div>
+              <div className="w-10 text-center">:</div>
+              <div className="flex-1 font-bold">
+                {nilaiEksternal ? (parseFloat(nilaiEksternal) / 20).toFixed(2) : "0.00"}
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={handleSaveEksternal}
+              disabled={saving}
+              className="px-6 py-2.5 flex items-center gap-2 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all disabled:opacity-70"
+              style={{ background: "linear-gradient(135deg,#1B3A6B,#2E5BA8)" }}
+            >
+              {saving && <Loader2 size={16} className="animate-spin" />}
+              Simpan Konversi Nilai
+            </button>
+          </div>
+        </div>
+      ) : (
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((level) => {
           const levelKriteria = kriterias.filter((k) => k.level === level);
@@ -215,7 +296,7 @@ export function KriteriaCrudView({
                       <tr key={k.id} className="border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors">
                         <td className="py-3 px-4 text-center text-gray-400">{idx + 1}</td>
                         <td className="py-3 px-4 text-gray-700 leading-relaxed pr-4">{k.deskripsi}</td>
-                        <td className="py-3 px-4 text-center font-semibold text-gray-800">{k.bobot}</td>
+                        <td className="py-3 px-4 text-center font-semibold text-gray-800">{Number(k.bobot).toFixed(2)}</td>
                         <td className="py-3 px-4 text-center">
                           {k.status === "uploaded" ? (
                             <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-bold">
@@ -254,6 +335,7 @@ export function KriteriaCrudView({
           );
         })}
       </div>
+      )}
 
       {/* CRUD Modal */}
       {showModal && (

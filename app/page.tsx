@@ -48,6 +48,7 @@ function getStoredPage(): Page {
 export default function App() {
   const [mounted, setMounted] = useState(false);
   const [page, setPageState] = useState<Page>("landing");
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
   const [collapsed, setCollapsed] = useState(false);
   const [detailIndikator, setDetailIndikator] = useState<Indikator | null>(null);
   const [kriteriaIndikator, setKriteriaIndikator] = useState<{ id: string; nama: string; no: string } | null>(null);
@@ -121,7 +122,7 @@ export default function App() {
   const PAGE_META: Record<Page, { title: string; sub: string }> = {
     landing: { title: "", sub: "" },
     login: { title: "", sub: "" },
-    dashboard: { title: "Dashboard", sub: `${currentUser.instansi} · Tahun Penilaian 2026` },
+    dashboard: { title: "Dashboard", sub: `${currentUser.instansi} · Tahun Penilaian ${selectedYear}` },
     penilaian: { title: "Penilaian Mandiri Pemerintah Digital", sub: `Kode: ${currentUser.kode || '-'} · ${currentUser.instansi}` },
     detail: { title: detailIndikator ? `Tingkat Kematangan Penilaian: ${detailIndikator.nama}` : "Detail Indikator", sub: "Upload dan kelola bukti dukung per level kematangan" },
     users: { title: "Manajemen Pengguna", sub: "Kelola akun ASN yang memiliki akses ke sistem PEMDI" },
@@ -164,24 +165,24 @@ export default function App() {
         <Sidebar page={page} setPage={setPage} collapsed={collapsed} setCollapsed={setCollapsed} currentUser={currentUser} />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <TopBar title={title} sub={sub} />
+        <TopBar title={title} sub={sub} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
 
         <main className="flex-1 overflow-y-auto">
-          {page === "dashboard" && <DashboardView setPage={setPage} />}
-          {page === "penilaian" && <PenilaianView setPage={setPage} setDetailIndikator={setDetailIndikator} currentUser={currentUser} />}
-          {page === "detail" && <DetailView indikator={detailIndikator} />}
+          {page === "dashboard" && <DashboardView setPage={setPage} selectedYear={selectedYear} currentUser={currentUser} />}
+          {page === "penilaian" && <PenilaianView setPage={setPage} setDetailIndikator={setDetailIndikator} currentUser={currentUser} selectedYear={selectedYear} />}
+          {page === "detail" && <DetailView indikator={detailIndikator} currentUser={currentUser} />}
           {page === "users" && <UsersView currentUser={currentUser} onImpersonate={handleImpersonate} />}
           {page === "roles" && <RolesView />}
-          {page === "laporan" && <LaporanView />}
+          {page === "laporan" && <LaporanView selectedYear={selectedYear} currentUser={currentUser} />}
           {page === "instansi" && <InstansiView />}
-          {page === "indikator_crud" && <IndikatorCrudView setPage={setPage} setKriteriaIndikator={setKriteriaIndikator} />}
+          {page === "indikator_crud" && <IndikatorCrudView setPage={setPage} setKriteriaIndikator={setKriteriaIndikator} selectedYear={selectedYear} />}
           {page === "kriteria_crud" && <KriteriaCrudView indikator={kriteriaIndikator} setPage={setPage} />}
           {page === "log_activity" && <LogActivityView />}
         </main>
 
         <footer className="border-t border-gray-100 px-5 py-2 bg-white flex items-center justify-between flex-shrink-0">
           <p className="text-[10px] text-gray-300">Sistem PEMDI · Kementerian Dalam Negeri RI · v1.0.0</p>
-          <p className="text-[10px] text-gray-300">Tahun Anggaran 2026 · {currentUser.instansi}</p>
+          <p className="text-[10px] text-gray-300">Tahun Anggaran {selectedYear} · {currentUser.instansi}</p>
         </footer>
       </div>
       </div>

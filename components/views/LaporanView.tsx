@@ -6,16 +6,53 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
 import { Kematangan, Aspek } from "@/lib/types";
 
-export function LaporanView() {
+export function LaporanView({ selectedYear, currentUser }: { selectedYear: string, currentUser: any }) {
   const [aspeks, setAspeks] = useState<Aspek[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const exportUrl = currentUser.role === "Super Admin" 
+        ? `/api/export?tahun=${selectedYear}` 
+        : `/api/export?tahun=${selectedYear}&userId=${currentUser.id}`;
+      const res = await fetch(exportUrl);
+      if (!res.ok) throw new Error("Gagal mengunduh file");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Laporan_PEMDI_${selectedYear}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Gagal mengunduh file Excel. Silakan coba lagi.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
 
   useEffect(() => {
     let ignore = false;
+
+    // Show full-screen loader only on first load; show small indicator on year change
+    if (aspeks.length > 0) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    setError(null);
+
     (async () => {
       try {
-        const res = await fetch("/api/dashboard", { cache: "no-store" });
+        const url = currentUser.role === "Super Admin" 
+          ? `/api/dashboard?tahun=${selectedYear}` 
+          : `/api/dashboard?tahun=${selectedYear}&userId=${currentUser.id}`;
+        const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error("Gagal memuat data laporan");
         const json = await res.json();
         if (!ignore) {
@@ -24,11 +61,15 @@ export function LaporanView() {
       } catch (e: any) {
         if (!ignore) setError(e.message || "Terjadi kesalahan");
       } finally {
-        if (!ignore) setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     })();
     return () => { ignore = true; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear]);
 
   if (loading) {
     return (
@@ -49,7 +90,7 @@ export function LaporanView() {
 
   const barData = aspeks.map(a => ({
     name: `Aspek ${a.no}`,
-    nilai: a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i, _, arr) => s + (i.nilaiCapaian! / arr.length), 0) || 0,
+    nilai: a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / (a.bobot || 1))), 0) || 0,
     target: 5,
   }));
 
@@ -74,7 +115,7 @@ export function LaporanView() {
           <h3 className="text-sm font-bold text-gray-900 mb-4">Rekap per Aspek</h3>
           <div className="space-y-4">
             {aspeks.map(a => {
-              const nilai = a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i, _, arr) => s + (i.nilaiCapaian! / arr.length), 0) || 0;
+              const nilai = a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / (a.bobot || 1))), 0) || 0;
               const pct = (nilai / 5) * 100;
               const level = Math.max(1, Math.min(5, Math.ceil(nilai || 1)));
               return (
@@ -101,10 +142,26 @@ export function LaporanView() {
       {/* Detailed table */}
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-gray-900">Detail Capaian Indikator</h3>
-          <button className="flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:underline">
-            <Download size={12} /> Export Excel
-          </button>
+          <h3 className="text-sm font-bold text-gray-900">
+            Detail Capaian Indikator
+            <span className="ml-2 text-xs font-normal text-gray-400">Tahun {selectedYear}</span>
+          </h3>
+          <div className="flex items-center gap-3">
+            {refreshing && (
+              <div className="flex items-center gap-1.5 text-blue-600 text-xs">
+                <Loader2 size={12} className="animate-spin" />
+                <span>Memuat data...</span>
+              </div>
+            )}
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exporting ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+              {exporting ? `Mengunduh ${selectedYear}...` : `Export Excel ${selectedYear}`}
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -126,7 +183,7 @@ export function LaporanView() {
                     <td className="px-4 py-3 font-medium text-gray-800 max-w-[200px]"><span className="truncate block">{ind.nama}</span></td>
                     <td className="px-4 py-3 text-gray-500">{aspeks.find(a => a.id === ind.aspekId)?.nama.split(" ").slice(0, 2).join(" ")}</td>
                     <td className="px-4 py-3 font-extrabold text-gray-900">{ind.bobot} %</td>
-                    <td className="px-4 py-3 font-extrabold text-gray-900">{ind.nilaiCapaian?.toFixed(1) ?? "–"}</td>
+                    <td className="px-4 py-3 font-extrabold text-gray-900">{ind.nilaiCapaian !== null ? ((ind.nilaiCapaian / 5) * ind.bobot).toFixed(2) : "–"}</td>
                     <td className="px-4 py-3 text-gray-500 text-[11px]">{ind.predikat ?? "Belum dinilai"}</td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${totalKriteria > 0 && pct === totalKriteria ? "bg-emerald-50 text-emerald-700 border-emerald-200" : pct > 0 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-gray-50 text-gray-400 border-gray-200"}`}>
@@ -155,7 +212,7 @@ export function LaporanView() {
                     {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.bobot || 0), 0)} %
                   </td>
                   <td className="px-4 py-3 font-extrabold text-blue-800">
-                    {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.nilaiCapaian || 0), 0).toFixed(1)}
+                    {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.nilaiCapaian !== null ? (ind.nilaiCapaian / 5) * ind.bobot : 0), 0).toFixed(2)}
                   </td>
                   <td colSpan={2} className="px-4 py-3"></td>
                 </tr>

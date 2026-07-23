@@ -2,18 +2,26 @@ import React, { useState, useEffect } from "react";
 import { Settings, Loader2 } from "lucide-react";
 import { Page, Indikator, Aspek } from "@/lib/types";
 
-export function PenilaianView({ setPage, setDetailIndikator, currentUser }: { setPage: (p: Page) => void; setDetailIndikator: (i: Indikator) => void; currentUser: any }) {
+export function PenilaianView({ setPage, setDetailIndikator, currentUser, selectedYear }: { setPage: (p: Page) => void; setDetailIndikator: (i: Indikator) => void; currentUser: any; selectedYear: string }) {
   const [openAspeks, setOpenAspeks] = useState<Record<string, boolean>>({});
   const [aspeksData, setAspeksData] = useState<Aspek[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
+      // If already have data, show small refreshing indicator, not full-screen loader
+      if (aspeksData.length > 0) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
       try {
-        const url = currentUser.role === "Super Admin" ? "/api/indikator" : `/api/indikator?userId=${currentUser.id}`;
+        const url = currentUser.role === "Super Admin" ? `/api/indikator?tahun=${selectedYear}` : `/api/indikator?userId=${currentUser.id}&tahun=${selectedYear}`;
         
         const [resAspek, resIndikator] = await Promise.all([
-          fetch("/api/aspek"),
+          fetch(`/api/aspek?tahun=${selectedYear}`),
           fetch(url)
         ]);
 
@@ -29,7 +37,7 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser }: { se
             }));
           });
 
-          // Only keep aspects that have indicators (or keep all if Super Admin)
+          // Only keep aspects that have indicators
           const filteredAspeks = aspeks.filter(a => a.indikators.length > 0 || currentUser.role === "Super Admin");
           setAspeksData(filteredAspeks);
 
@@ -37,15 +45,21 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser }: { se
           const initialOpenState: Record<string, boolean> = {};
           filteredAspeks.forEach(a => { initialOpenState[a.id] = true; });
           setOpenAspeks(initialOpenState);
+        } else {
+          // API returned an error, clear data for this year
+          setAspeksData([]);
         }
       } catch (error) {
         console.error("Failed to fetch penilaian data:", error);
+        setAspeksData([]);
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     }
     fetchData();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear, currentUser.role, currentUser.id]);
 
   function toggleAspek(id: string) {
     setOpenAspeks(prev => ({ ...prev, [id]: !prev[id] }));
@@ -67,9 +81,17 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser }: { se
   return (
     <div className="min-h-full bg-white text-gray-800 p-6" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="bg-gray-50 rounded-t border-b-2 border-blue-600">
-        <div className="flex px-4 py-3 text-xs font-bold text-gray-700">
-          <div className="w-1/4">Instansi</div>
-          <div className="w-1/2">: {currentUser.instansi}</div>
+        <div className="flex items-center justify-between px-4 py-3 text-xs font-bold text-gray-700">
+          <div className="flex gap-6">
+            <div className="flex gap-2"><span>Instansi</span><span>: {currentUser.instansi}</span></div>
+            <div className="flex gap-2"><span>Tahun</span><span>: {selectedYear}</span></div>
+          </div>
+          {refreshing && (
+            <div className="flex items-center gap-1.5 text-blue-600 font-normal">
+              <Loader2 size={12} className="animate-spin" />
+              <span>Memuat data...</span>
+            </div>
+          )}
         </div>
       </div>
       
@@ -120,7 +142,7 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser }: { se
                   )}
                   {isOpen && aspek.indikators.map((ind, idx) => {
                     const totalDataDukung = ind.kriteria?.length || 0;
-                    const doneDataDukung = ind.kriteria?.filter(k => k.status === "uploaded").length || 0;
+                    const doneDataDukung = ind.kriteria?.filter(k => k.status === "uploaded" || k.status === "verified").length || 0;
                     
                     return (
                       <tr key={ind.id} className="border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors">

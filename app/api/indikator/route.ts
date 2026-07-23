@@ -5,6 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
+    const tahun = parseInt(searchParams.get('tahun') || '2026', 10);
 
     let sql = `
       SELECT 
@@ -17,8 +18,11 @@ export async function GET(req: NextRequest) {
     const params: any[] = [];
 
     if (userId) {
-      sql += ` INNER JOIN indikator_akses ia ON i.id = ia.indikator_id WHERE ia.user_id = ? `;
-      params.push(userId);
+      sql += ` INNER JOIN indikator_akses ia ON i.id = ia.indikator_id WHERE ia.user_id = ? AND a.tahun = ? `;
+      params.push(userId, tahun);
+    } else {
+      sql += ` WHERE a.tahun = ? `;
+      params.push(tahun);
     }
 
     sql += ` ORDER BY CAST(SUBSTRING_INDEX(i.no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(i.no, '.', -1) AS UNSIGNED)`;
