@@ -51,7 +51,7 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState<string>("2026");
   const [collapsed, setCollapsed] = useState(false);
   const [detailIndikator, setDetailIndikator] = useState<Indikator | null>(null);
-  const [kriteriaIndikator, setKriteriaIndikator] = useState<{ id: string; nama: string; no: string } | null>(null);
+  const [kriteriaIndikator, setKriteriaIndikator] = useState<{ id: string; nama: string; no: string; tipe: string; nilaiCapaian?: number | null } | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(SESSION);
   const [originalAdminUser, setOriginalAdminUser] = useState<any>(null);
 
