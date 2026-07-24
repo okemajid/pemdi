@@ -21,8 +21,8 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
     setLoading(true);
     setError(null);
     try {
-      const url = currentUser.role === "Super Admin" 
-        ? `/api/dashboard?tahun=${selectedYear}` 
+      const url = currentUser.role === "Super Admin"
+        ? `/api/dashboard?tahun=${selectedYear}`
         : `/api/dashboard?tahun=${selectedYear}&userId=${currentUser.id}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error("Gagal memuat data dashboard");
@@ -69,7 +69,7 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
   const pieData = [
     { name: "Terverifikasi", value: stats.verified, color: "#3B82F6" },
     { name: "Terunggah", value: stats.uploaded, color: "#22C55E" },
-    { name: "Review", value: stats.pending, color: "#F59E0B" },
+    // { name: "Review", value: stats.pending, color: "#F59E0B" },
     { name: "Ditolak", value: stats.rejected, color: "#EF4444" },
     { name: "Belum Upload", value: stats.empty, color: "#CBD5E1" },
   ];
