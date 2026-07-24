@@ -58,12 +58,19 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
 
   const { session: SESSION, aspeks, stats } = data;
   const pct = stats.total > 0 ? Math.round((stats.verified / stats.total) * 100) : 0;
-  const nilaiRata = aspeks.flatMap(a => a.indikators).filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / 100)), 0) || 0;
+  // Konversi nilai per indikator (sama seperti di Analisis Capaian)
+  function convertedNilaiDashboard(ind: IndikatorData): number {
+    if (ind.nilaiCapaian === null || ind.nilaiCapaian === undefined) return 0;
+    if (ind.tipe === 'Eksternal') return Math.min((ind.nilaiCapaian / 5) * ind.bobot, ind.bobot);
+    return Math.min(ind.nilaiCapaian, ind.bobot);
+  }
+  const totalNilaiCapaian = aspeks.flatMap(a => a.indikators).reduce((s, i) => s + convertedNilaiDashboard(i), 0);
+  const nilaiRata = (5 / 100) * totalNilaiCapaian;
 
   const radarData = aspeks.map(a => ({
     domain: a.nama.split(" ").slice(0, 2).join(" "),
-    capaian: a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / (a.bobot || 1))), 0) || 0,
-    target: 5,
+    capaian: a.indikators.reduce((s, i) => s + convertedNilaiDashboard(i), 0),
+    target: a.bobot,
   }));
 
   const pieData = [
@@ -174,14 +181,13 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             {aspeks.map(a => {
-              const total = a.indikators.flatMap(i => i.kriteria).length;
-              const done = a.indikators.flatMap(i => i.kriteria).filter(k => k.status === "verified").length;
-              const pctAspek = total > 0 ? Math.round((done / total) * 100) : 0;
+              const nilaiAspek = a.indikators.reduce((s, i) => s + convertedNilaiDashboard(i), 0);
+              const pctAspek = a.bobot > 0 ? Math.min(Math.round((nilaiAspek / a.bobot) * 100), 100) : 0;
               return (
                 <div key={a.id}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-gray-700">{a.no}. {a.nama}</span>
-                    <span className="text-[11px] text-gray-400">{done}/{total} · {pctAspek}%</span>
+                    <span className="text-[11px] text-gray-400">{Number(nilaiAspek.toFixed(1))}/{a.bobot} · {pctAspek}%</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${pctAspek}%`, background: "linear-gradient(90deg,#1B3A6B,#2E5BA8)" }} />

@@ -88,10 +88,47 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
     );
   }
 
+  // Ranking predikat untuk agregasi aspek
+  const PREDIKAT_RANK: Record<string, number> = {
+    "Inisiasi / Rintisan": 1, "Emerging / Cukup": 2, "Berkembang Baik": 3,
+    "Embedded / Dapat Baik": 4, "Leading / Pemimpin": 5,
+  };
+  const RANK_PREDIKAT: Record<number, string> = {
+    1: "Inisiasi / Rintisan", 2: "Emerging / Cukup", 3: "Berkembang Baik",
+    4: "Embedded / Dapat Baik", 5: "Leading / Pemimpin",
+  };
+  const PREDIKAT_COLOR: Record<string, string> = {
+    "Inisiasi / Rintisan": "#EF4444", "Emerging / Cukup": "#F97316",
+    "Berkembang Baik": "#EAB308", "Embedded / Dapat Baik": "#22C55E",
+    "Leading / Pemimpin": "#3B82F6",
+  };
+
+  // Helper: apakah semua kriteria indikator sudah verified?
+  // Helper: konversi nilai capaian ke skala bobot indikator
+  function convertedNilai(ind: any): number | null {
+    if (ind.nilaiCapaian === null || ind.nilaiCapaian === undefined) return null;
+    if (ind.tipe === 'Eksternal') {
+      return Math.min((ind.nilaiCapaian / 5) * ind.bobot, ind.bobot);
+    }
+    return Math.min(ind.nilaiCapaian, ind.bobot);
+  }
+
+  // Helper: predikat berdasarkan rasio nilai/bobot
+  function predikatFromNilai(nilai: number | null, bobot: number): string | null {
+    if (nilai === null || nilai <= 0 || bobot <= 0) return null;
+    const ratio = nilai / bobot;
+    if (ratio >= 1.0) return "Leading / Pemimpin";
+    if (ratio >= 0.75) return "Embedded / Dapat Baik";
+    if (ratio >= 0.5) return "Berkembang Baik";
+    if (ratio >= 0.25) return "Emerging / Cukup";
+    return "Inisiasi / Rintisan";
+  }
+
+  // barData: nilai = SUM nilaiCapaian indikator (max = bobot aspek)
   const barData = aspeks.map(a => ({
     name: `Aspek ${a.no}`,
-    nilai: a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / (a.bobot || 1))), 0) || 0,
-    target: 5,
+    nilai: a.indikators.reduce((s: number, i: any) => s + (convertedNilai(i) || 0), 0),
+    target: a.bobot,
   }));
 
   return (
@@ -99,12 +136,12 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
           <h3 className="text-sm font-bold text-gray-900 mb-1">Nilai Capaian per Aspek</h3>
-          <p className="text-xs text-gray-400 mb-4">Perbandingan capaian vs target (5.0)</p>
+          <p className="text-xs text-gray-400 mb-4">Perbandingan capaian vs target (bobot aspek)</p>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={barData}>
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 5]} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} formatter={(v: any) => Number(v).toFixed(2)} />
+              <YAxis domain={[0, Math.max(...aspeks.map(a => a.bobot), 1)]} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} formatter={(v: any) => Number(Number(v).toFixed(1))} />
               <Bar dataKey="target" fill="#f1f5f9" radius={[3, 3, 0, 0]} />
               <Bar dataKey="nilai" fill="#1B3A6B" radius={[3, 3, 0, 0]} />
             </BarChart>
@@ -115,22 +152,35 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
           <h3 className="text-sm font-bold text-gray-900 mb-4">Rekap per Aspek</h3>
           <div className="space-y-4">
             {aspeks.map(a => {
-              const nilai = a.indikators.filter(i => i.nilaiCapaian !== null).reduce((s, i) => s + (i.nilaiCapaian! * (i.bobot / (a.bobot || 1))), 0) || 0;
-              const pct = (nilai / 5) * 100;
-              const level = Math.max(1, Math.min(5, Math.ceil(nilai || 1)));
+              const nilaiAspek = a.indikators.reduce((s: number, i: any) => s + (convertedNilai(i) || 0), 0);
+              // Progress bar: full (100%) saat semua indikator fully verified
+              const pct = a.bobot > 0 ? Math.min((nilaiAspek / a.bobot) * 100, 100) : 0;
+              // Predikat: weighted average dari predikat indikator (berdasarkan bobot)
+              const indWithPredikat = a.indikators.filter((i: any) => i.predikat && PREDIKAT_RANK[i.predikat]);
+              const totalBobotPred = indWithPredikat.reduce((s: number, i: any) => s + i.bobot, 0);
+              const weightedRank = totalBobotPred > 0
+                ? indWithPredikat.reduce((s: number, i: any) => s + (PREDIKAT_RANK[i.predikat] * i.bobot), 0) / totalBobotPred
+                : 0;
+              const predikatAspek = weightedRank >= 4.5 ? "Leading / Pemimpin"
+                : weightedRank >= 3.5 ? "Embedded / Dapat Baik"
+                : weightedRank >= 2.5 ? "Berkembang Baik"
+                : weightedRank >= 1.5 ? "Emerging / Cukup"
+                : weightedRank > 0 ? "Inisiasi / Rintisan"
+                : null;
+              const barColor = predikatAspek ? PREDIKAT_COLOR[predikatAspek] : "#CBD5E1";
               return (
                 <div key={a.id}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-gray-800">{a.no}. {a.nama}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: MATURITY_COLORS[level as Kematangan] }}>
-                        {MATURITY_LABELS[level as Kematangan]}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: barColor }}>
+                        {predikatAspek ?? "Belum dinilai"}
                       </span>
-                      <span className="text-xs font-extrabold text-gray-900">{nilai.toFixed(2)}</span>
+                      <span className="text-xs font-extrabold text-gray-900">{Number(nilaiAspek.toFixed(1))}</span>
                     </div>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: MATURITY_COLORS[level as Kematangan] }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
                   </div>
                 </div>
               );
@@ -175,19 +225,31 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
             <tbody>
               {aspeks.flatMap(a => a.indikators).map((ind, i) => {
                 const totalKriteria = ind.kriteria ? ind.kriteria.length : 0;
-                const pct = ind.kriteria ? ind.kriteria.filter(k => k.status === "uploaded").length : 0;
-                
+                const verifiedCount = ind.kriteria ? ind.kriteria.filter((k: any) => k.status === "verified").length : 0;
+                const uploadedCount = ind.kriteria ? ind.kriteria.filter((k: any) => k.status === "uploaded" || k.status === "verified").length : 0;
+                const allVerified = totalKriteria > 0 && verifiedCount === totalKriteria;
+                const nilaiDisplay = convertedNilai(ind);
+                const hasNilai = nilaiDisplay !== null;
+                const predikatDisplay = predikatFromNilai(nilaiDisplay, ind.bobot);
+
                 return (
                   <tr key={ind.id} className={`border-b border-gray-50 hover:bg-blue-50/20 ${i % 2 === 0 ? "" : "bg-gray-50/30"}`}>
                     <td className="px-4 py-3 font-mono font-bold text-blue-700">{i + 1}</td>
                     <td className="px-4 py-3 font-medium text-gray-800 max-w-[200px]"><span className="truncate block">{ind.nama}</span></td>
                     <td className="px-4 py-3 text-gray-500">{aspeks.find(a => a.id === ind.aspekId)?.nama.split(" ").slice(0, 2).join(" ")}</td>
                     <td className="px-4 py-3 font-extrabold text-gray-900">{ind.bobot} %</td>
-                    <td className="px-4 py-3 font-extrabold text-gray-900">{ind.nilaiCapaian !== null ? ((ind.nilaiCapaian / 5) * ind.bobot).toFixed(2) : "–"}</td>
-                    <td className="px-4 py-3 text-gray-500 text-[11px]">{ind.predikat ?? "Belum dinilai"}</td>
+                    <td className="px-4 py-3 font-extrabold text-gray-900">
+                      {hasNilai ? Number((nilaiDisplay as number).toFixed(1)) : "–"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-[11px]">{predikatDisplay ?? "Belum dinilai"}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${totalKriteria > 0 && pct === totalKriteria ? "bg-emerald-50 text-emerald-700 border-emerald-200" : pct > 0 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-gray-50 text-gray-400 border-gray-200"}`}>
-                        {pct}/{totalKriteria} dokumen
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        allVerified ? "bg-blue-50 text-blue-700 border-blue-200" :
+                        uploadedCount === totalKriteria && totalKriteria > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                        uploadedCount > 0 ? "bg-amber-50 text-amber-700 border-amber-200" :
+                        "bg-gray-50 text-gray-400 border-gray-200"
+                      }`}>
+                        {uploadedCount}/{totalKriteria} dokumen
                       </span>
                     </td>
                   </tr>
@@ -212,7 +274,7 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
                     {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.bobot || 0), 0)} %
                   </td>
                   <td className="px-4 py-3 font-extrabold text-blue-800">
-                    {aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (ind.nilaiCapaian !== null ? (ind.nilaiCapaian / 5) * ind.bobot : 0), 0).toFixed(2)}
+                    {Number(aspeks.flatMap(a => a.indikators).reduce((sum, ind) => sum + (convertedNilai(ind) || 0), 0).toFixed(1))}
                   </td>
                   <td colSpan={2} className="px-4 py-3"></td>
                 </tr>

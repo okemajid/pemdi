@@ -69,13 +69,13 @@ export async function GET(req: NextRequest) {
       const aspekIndikators = indikatorsRows.filter((ind: any) => ind.aspek_id === aspek.id);
       const withNilai = aspekIndikators.filter((ind: any) => ind.nilai_capaian !== null);
       const avg = withNilai.length > 0
-        ? withNilai.reduce((s: number, ind: any) => s + ind.nilai_capaian, 0) / withNilai.length
+        ? withNilai.reduce((s: number, ind: any) => s + Math.min(ind.nilai_capaian || 0, ind.bobot || 0), 0) / withNilai.length
         : 0;
 
       sheet1.cell(`A${currentRow1}`).value(aspek.no);
       sheet1.cell(`B${currentRow1}`).value(aspek.nama);
       sheet1.cell(`C${currentRow1}`).value(aspek.bobot);
-      sheet1.cell(`D${currentRow1}`).value(Number(avg.toFixed(2)));
+      sheet1.cell(`D${currentRow1}`).value(Number(avg.toFixed(1)));
       sheet1.cell(`E${currentRow1}`).value(aspekIndikators.length);
       currentRow1++;
     }
@@ -89,10 +89,11 @@ export async function GET(req: NextRequest) {
       sheet2.cell(`B${currentRow2}`).value(ind.aspek_nama);
       sheet2.cell(`C${currentRow2}`).value(ind.nama);
       sheet2.cell(`D${currentRow2}`).value(ind.bobot);
-      sheet2.cell(`E${currentRow2}`).value(ind.nilai_capaian !== null ? Number(parseFloat(ind.nilai_capaian).toFixed(2)) : 0);
+      const cappedNilai = Math.min(ind.nilai_capaian !== null ? parseFloat(ind.nilai_capaian) : 0, ind.bobot || 0);
+      sheet2.cell(`E${currentRow2}`).value(ind.nilai_capaian !== null ? Number(cappedNilai.toFixed(1)) : 0);
       
-      const nilaiTertimbang = (ind.nilai_capaian || 0) * (ind.bobot || 0) / 100;
-      sheet2.cell(`F${currentRow2}`).value(Number(nilaiTertimbang.toFixed(2)));
+      const nilaiTertimbang = cappedNilai * (ind.bobot || 0) / 100;
+      sheet2.cell(`F${currentRow2}`).value(Number(nilaiTertimbang.toFixed(1)));
       currentRow2++;
     }
 

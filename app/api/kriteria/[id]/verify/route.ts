@@ -29,26 +29,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (kriteria && kriteria.indikator_id) {
       const indikatorId = kriteria.indikator_id;
 
-      // Recalculate nilai_capaian for the indikator based on verified kriteria only
+      // Get indikator bobot
+      const [indikatorRow] = await query(`SELECT bobot FROM indikator WHERE id = ?`, [indikatorId]) as any[];
+      const indikatorBobot = indikatorRow?.bobot || 0;
+
+      // Recalculate nilai_capaian
       const verifiedKriteria = await query(
-        `SELECT SUM(bobot) as total_bobot FROM kriteria WHERE indikator_id = ? AND status = 'verified'`,
+        `SELECT SUM(bobot) as total_bobot, MAX(level) as max_level FROM kriteria WHERE indikator_id = ? AND status = 'verified'`,
         [indikatorId]
       ) as any[];
 
-      const totalBobot = verifiedKriteria[0]?.total_bobot;
+      const kriteriaBobot = verifiedKriteria[0]?.total_bobot || 0;
+      const maxLevel = verifiedKriteria[0]?.max_level ?? null;
 
-      let predikat = "Belum dinilai";
-      if (totalBobot > 0 && totalBobot <= 1) predikat = "Inisiasi / Rintisan";
-      else if (totalBobot > 1 && totalBobot <= 2) predikat = "Emerging / Cukup";
-      else if (totalBobot > 2 && totalBobot <= 3) predikat = "Berkembang Baik";
-      else if (totalBobot > 3 && totalBobot <= 4) predikat = "Embedded / Dapat Baik";
-      else if (totalBobot > 4) predikat = "Leading / Pemimpin";
-      else if (totalBobot === 0) predikat = "Belum Ada Nilai";
+      let totalBobot = (indikatorBobot / 4) * kriteriaBobot;
+      if (kriteriaBobot >= 3.98) {
+        totalBobot = indikatorBobot;
+      }
+
+      // Predikat berdasarkan rasio nilai/bobot
+      let predikat: string | null = null;
+      const ratio = indikatorBobot > 0 ? totalBobot / indikatorBobot : 0;
+      if (ratio >= 1.0) predikat = "Leading / Pemimpin";
+      else if (ratio >= 0.75) predikat = "Embedded / Dapat Baik";
+      else if (ratio >= 0.5) predikat = "Berkembang Baik";
+      else if (ratio >= 0.25) predikat = "Emerging / Cukup";
+      else if (ratio > 0) predikat = "Inisiasi / Rintisan";
 
       await query(
         `UPDATE indikator SET nilai_capaian = ?, predikat = ? WHERE id = ?`,
-        [totalBobot === null || totalBobot === undefined ? null : totalBobot, totalBobot === null || totalBobot === undefined ? null : predikat, indikatorId]
+        [Number(totalBobot), predikat, indikatorId]
       );
+
     }
 
     return NextResponse.json({ success: true, status: newStatus });
