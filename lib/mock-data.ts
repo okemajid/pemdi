@@ -17,7 +17,7 @@ export const aspeks: Aspek[] = [
     indikators: [
       {
         id: "i1", no: "1.1", nama: "Tingkat Ketersediaan Data Kinerja Pemerintah Digital", tipe: "Internal",
-        bobot: 6, nilaiCapaian: 3.5, predikat: "Berkembang Baik", aspekId: "a1",
+        bobot: 6, nilaiCapaian: 3.5, nilaiEksternal: null, predikat: "Berkembang Baik", aspekId: "a1",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.10, status: "uploaded", file: "SK_Kebijakan_2024.pdf", deskripsi: "Pemerintah Daerah telah memiliki dokumen perencanaan yang menyebutkan rencana pengembangan Pemerintah Digital secara umum namun belum spesifik dan terukur." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.15, status: "uploaded", file: "Laporan_Q4_2024.pdf", deskripsi: "Pemerintah Daerah telah memiliki dokumen perencanaan Pemerintah Digital yang lebih spesifik dengan indikator kinerja yang mulai teridentifikasi." },
@@ -28,7 +28,7 @@ export const aspeks: Aspek[] = [
       },
       {
         id: "i2", no: "1.2", nama: "Tingkat Ketersediaan Manajemen Layanan Digital Pemerintah", tipe: "Internal",
-        bobot: 8, nilaiCapaian: 2.0, predikat: "Emerging / Cukup", aspekId: "a1",
+        bobot: 8, nilaiCapaian: 2.0, nilaiEksternal: null, predikat: "Emerging / Cukup", aspekId: "a1",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.10, status: "uploaded", file: "Dok_Manajemen.pdf", deskripsi: "Terdapat pemahaman awal tentang manajemen layanan digital namun belum ada prosedur formal yang ditetapkan." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.21, status: "pending", deskripsi: "Prosedur manajemen layanan digital mulai didokumentasikan dan diterapkan pada sebagian layanan prioritas." },
@@ -44,7 +44,7 @@ export const aspeks: Aspek[] = [
     indikators: [
       {
         id: "i3", no: "2.1", nama: "Tingkat Kematangan Kebijakan Pemerintah Digital", tipe: "Internal",
-        bobot: 7, nilaiCapaian: 4.0, predikat: "Embedded / Capat Baik", aspekId: "a2",
+        bobot: 7, nilaiCapaian: 4.0, nilaiEksternal: null, predikat: "Embedded / Capat Baik", aspekId: "a2",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.12, status: "uploaded", file: "Perda_SPBE.pdf", deskripsi: "Terdapat kebijakan dasar terkait pengembangan Pemerintah Digital namun masih bersifat umum." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.18, status: "uploaded", file: "Perbup_TIK_2023.pdf", deskripsi: "Kebijakan Pemerintah Digital mulai lebih spesifik dengan cakupan yang lebih luas dan target yang terukur." },
@@ -55,7 +55,7 @@ export const aspeks: Aspek[] = [
       },
       {
         id: "i4", no: "2.2", nama: "Tingkat Keandalan Infrastruktur Pemerintah Digital", tipe: "Eksternal",
-        bobot: 9, nilaiCapaian: null, predikat: null, aspekId: "a2",
+        bobot: 9, nilaiCapaian: null, nilaiEksternal: null, predikat: null, aspekId: "a2",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.10, status: "empty", deskripsi: "Infrastruktur dasar TIK tersedia namun belum memenuhi standar keandalan yang dipersyaratkan." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.15, status: "empty", deskripsi: "Infrastruktur TIK mulai dikelola dengan standar yang lebih baik dan redundansi dasar tersedia." },
@@ -71,7 +71,7 @@ export const aspeks: Aspek[] = [
     indikators: [
       {
         id: "i5", no: "3.1", nama: "Tingkat Ketersediaan Data Induk Satu Data Indonesia", tipe: "Eksternal",
-        bobot: 8, nilaiCapaian: 1.5, predikat: "Inisiasi / Rintisan", aspekId: "a3",
+        bobot: 8, nilaiCapaian: 1.5, nilaiEksternal: null, predikat: "Inisiasi / Rintisan", aspekId: "a3",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.21, status: "uploaded", file: "Data_Inventaris.xlsx", deskripsi: "Terdapat identifikasi awal data yang perlu dikelola dalam kerangka Satu Data Indonesia namun belum komprehensif." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.25, status: "rejected", file: "SDI_Format.xlsx", deskripsi: "Data mulai dikelola sesuai standar Satu Data Indonesia pada beberapa domain data prioritas." },
@@ -82,7 +82,7 @@ export const aspeks: Aspek[] = [
       },
       {
         id: "i6", no: "3.2", nama: "Tingkat Ketersediaan Informasi Umum Pemerintah PPID Digital", tipe: "Eksternal",
-        bobot: 6, nilaiCapaian: 3.0, predikat: "Berkembang Baik", aspekId: "a3",
+        bobot: 6, nilaiCapaian: 3.0, nilaiEksternal: null, predikat: "Berkembang Baik", aspekId: "a3",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.15, status: "uploaded", file: "SK_PPID.pdf", deskripsi: "PPID sudah terbentuk namun layanan informasi publik belum sepenuhnya digital." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.20, status: "uploaded", file: "Website_PPID_Screenshot.png", deskripsi: "Portal PPID digital sudah tersedia dan berfungsi dengan konten informasi dasar yang dipublikasikan." },
@@ -98,7 +98,7 @@ export const aspeks: Aspek[] = [
     indikators: [
       {
         id: "i7", no: "4.1", nama: "Tingkat Kematangan Layanan Publik Berbasis Digital", tipe: "Internal",
-        bobot: 10, nilaiCapaian: 4.5, predikat: "Leading / Pemimpin", aspekId: "a4",
+        bobot: 10, nilaiCapaian: 4.5, nilaiEksternal: null, predikat: "Leading / Pemimpin", aspekId: "a4",
         kriteria: [
           { level: 1, label: "Inisiasi / Rintisan", bobot: 0.10, status: "uploaded", file: "Inventaris_Layanan.pdf", deskripsi: "Tersedia beberapa layanan publik secara online namun masih terbatas dan belum terintegrasi." },
           { level: 2, label: "Emerging / Cukup", bobot: 0.20, status: "uploaded", file: "Portal_Layanan.pdf", deskripsi: "Portal layanan publik online tersedia dengan layanan prioritas yang dapat diakses secara digital." },
