@@ -21,6 +21,7 @@ export interface Indikator {
   tipe: "Internal" | "Eksternal";
   bobot: number;
   nilaiCapaian: number | null;
+  nilaiEksternal: number | null;
   predikat: string | null;
   aspekId: string;
   kriteria: KriteriaLevel[];

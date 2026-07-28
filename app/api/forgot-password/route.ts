@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
       [email]
     ) as any[];
 
-    // Always return success to prevent email enumeration attack
+    // Check if user exists, otherwise return error
     if (!rows || rows.length === 0) {
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ error: "Email tidak terdaftar atau tidak aktif" }, { status: 404 });
     }
 
     const user = rows[0];

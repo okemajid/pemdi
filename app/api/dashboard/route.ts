@@ -56,6 +56,7 @@ export async function GET(req: NextRequest) {
         tipe: ind.tipe,
         bobot: ind.bobot,
         nilaiCapaian: ind.nilai_capaian,
+        nilaiEksternal: ind.nilai_eksternal,
         predikat: ind.predikat,
         kriteria: kriteriaMap.get(ind.id) || []
       });

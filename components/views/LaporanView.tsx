@@ -12,6 +12,8 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editEksternal, setEditEksternal] = useState<{ id: string; nama: string; bobot: number; nilai: string } | null>(null);
+  const [savingEksternal, setSavingEksternal] = useState(false);
 
   async function handleExport() {
     setExporting(true);
@@ -32,6 +34,34 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
       alert("Gagal mengunduh file Excel. Silakan coba lagi.");
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleSaveEksternal() {
+    if (!editEksternal) return;
+    const val = parseFloat(editEksternal.nilai);
+    if (isNaN(val) || val < 0 || val > 5) {
+      alert("Nilai eksternal harus antara 0 sampai 5");
+      return;
+    }
+    setSavingEksternal(true);
+    try {
+      const res = await fetch(`/api/indikator/${editEksternal.id}/eksternal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nilaiEksternal: val }),
+      });
+      if (!res.ok) throw new Error("Gagal menyimpan");
+      // Refresh data
+      const url = `/api/dashboard?tahun=${selectedYear}`;
+      const refresh = await fetch(url, { cache: "no-store" });
+      const json = await refresh.json();
+      setAspeks(json.aspeks || []);
+      setEditEksternal(null);
+    } catch (e) {
+      alert("Gagal menyimpan nilai eksternal. Silakan coba lagi.");
+    } finally {
+      setSavingEksternal(false);
     }
   }
 
@@ -103,13 +133,15 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
     "Leading / Pemimpin": "#3B82F6",
   };
 
-  // Helper: apakah semua kriteria indikator sudah verified?
   // Helper: konversi nilai capaian ke skala bobot indikator
   function convertedNilai(ind: any): number | null {
-    if (ind.nilaiCapaian === null || ind.nilaiCapaian === undefined) return null;
     if (ind.tipe === 'Eksternal') {
-      return Math.min((ind.nilaiCapaian / 5) * ind.bobot, ind.bobot);
+      // Gunakan nilaiEksternal jika ada, fallback ke nilaiCapaian
+      const raw = ind.nilaiEksternal ?? ind.nilaiCapaian;
+      if (raw === null || raw === undefined) return null;
+      return Math.min((raw / 5) * ind.bobot, ind.bobot);
     }
+    if (ind.nilaiCapaian === null || ind.nilaiCapaian === undefined) return null;
     return Math.min(ind.nilaiCapaian, ind.bobot);
   }
 
@@ -235,22 +267,43 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
                 return (
                   <tr key={ind.id} className={`border-b border-gray-50 hover:bg-blue-50/20 ${i % 2 === 0 ? "" : "bg-gray-50/30"}`}>
                     <td className="px-4 py-3 font-mono font-bold text-blue-700">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium text-gray-800 max-w-[200px]"><span className="truncate block">{ind.nama}</span></td>
+                    <td className="px-4 py-3 font-medium text-gray-800 max-w-[200px]">
+                      <span className="truncate block">{ind.nama}</span>
+                      {ind.tipe === 'Eksternal' && <span className="text-[9px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded mt-0.5 inline-block">EKSTERNAL</span>}
+                    </td>
                     <td className="px-4 py-3 text-gray-500">{aspeks.find(a => a.id === ind.aspekId)?.nama.split(" ").slice(0, 2).join(" ")}</td>
                     <td className="px-4 py-3 font-extrabold text-gray-900">{ind.bobot} %</td>
                     <td className="px-4 py-3 font-extrabold text-gray-900">
-                      {hasNilai ? Number((nilaiDisplay as number).toFixed(1)) : "–"}
+                      {ind.tipe === 'Eksternal' ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span>{hasNilai ? Number((nilaiDisplay as number).toFixed(1)) : "–"}</span>
+                          {ind.nilaiEksternal !== null && ind.nilaiEksternal !== undefined && (
+                            <span className="text-[10px] text-purple-500 font-normal">indeks: {Number(ind.nilaiEksternal.toFixed(2))}/5</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span>{hasNilai ? Number((nilaiDisplay as number).toFixed(1)) : "–"}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-[11px]">{predikatDisplay ?? "Belum dinilai"}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        allVerified ? "bg-blue-50 text-blue-700 border-blue-200" :
-                        uploadedCount === totalKriteria && totalKriteria > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                        uploadedCount > 0 ? "bg-amber-50 text-amber-700 border-amber-200" :
-                        "bg-gray-50 text-gray-400 border-gray-200"
-                      }`}>
-                        {uploadedCount}/{totalKriteria} dokumen
-                      </span>
+                      {ind.tipe === 'Eksternal' && currentUser.role === 'Super Admin' ? (
+                        <button
+                          onClick={() => setEditEksternal({ id: ind.id, nama: ind.nama, bobot: ind.bobot, nilai: String(ind.nilaiEksternal ?? ind.nilaiCapaian ?? "") })}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 transition-colors"
+                        >
+                          ✏️ Set Nilai Eksternal
+                        </button>
+                      ) : (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          allVerified ? "bg-blue-50 text-blue-700 border-blue-200" :
+                          uploadedCount === totalKriteria && totalKriteria > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                          uploadedCount > 0 ? "bg-amber-50 text-amber-700 border-amber-200" :
+                          "bg-gray-50 text-gray-400 border-gray-200"
+                        }`}>
+                          {uploadedCount}/{totalKriteria} dokumen
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -283,6 +336,66 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
           </table>
         </div>
       </div>
+
+      {/* Modal Edit Nilai Eksternal - Super Admin Only */}
+      {editEksternal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-base font-bold text-gray-900 mb-1">Set Nilai Eksternal</h3>
+            <p className="text-xs text-gray-500 mb-4">{editEksternal.nama}</p>
+
+            <div className="bg-purple-50 rounded-xl p-4 mb-4 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">Bobot Indikator</span>
+                <span className="font-bold text-gray-800">{editEksternal.bobot}%</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">Nilai Max</span>
+                <span className="font-bold text-purple-700">{editEksternal.bobot}</span>
+              </div>
+              {editEksternal.nilai !== "" && !isNaN(parseFloat(editEksternal.nilai)) && (
+                <div className="flex justify-between text-xs border-t border-purple-200 pt-2">
+                  <span className="text-gray-600 font-semibold">Nilai Final (preview)</span>
+                  <span className="font-bold text-blue-700">
+                    {Number(Math.min((parseFloat(editEksternal.nilai) / 5) * editEksternal.bobot, editEksternal.bobot).toFixed(2))}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Nilai Indeks Eksternal <span className="text-gray-400 font-normal">(skala 0 – 5)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={5}
+              step={0.01}
+              value={editEksternal.nilai}
+              onChange={e => setEditEksternal({ ...editEksternal, nilai: e.target.value })}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 mb-4"
+              placeholder="Contoh: 3.84"
+              autoFocus
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditEksternal(null)}
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveEksternal}
+                disabled={savingEksternal}
+                className="flex-1 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-colors disabled:opacity-60"
+              >
+                {savingEksternal ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
