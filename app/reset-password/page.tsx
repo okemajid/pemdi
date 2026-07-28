@@ -27,7 +27,11 @@ function ResetPasswordForm() {
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p className="text-sm text-left">Tautan tidak valid atau tidak lengkap. Pastikan Anda mengklik tautan langsung dari email.</p>
         </div>
-        <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+        <Link 
+          href="/" 
+          onClick={() => sessionStorage.setItem("pemdi_session", JSON.stringify({ page: "login", timestamp: Date.now() }))}
+          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+        >
           Kembali ke Halaman Login
         </Link>
       </div>
@@ -80,7 +84,8 @@ function ResetPasswordForm() {
         <h3 className="text-xl font-bold text-gray-900 mb-2">Berhasil!</h3>
         <p className="text-gray-500 text-sm mb-6">Kata sandi Anda telah berhasil diperbarui.</p>
         <Link
-          href="/login"
+          href="/"
+          onClick={() => sessionStorage.setItem("pemdi_session", JSON.stringify({ page: "login", timestamp: Date.now() }))}
           className="inline-flex justify-center items-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition-colors"
         >
           Masuk Sekarang
