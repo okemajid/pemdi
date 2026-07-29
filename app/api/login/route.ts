@@ -4,10 +4,26 @@ import { query } from "@/lib/db";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { username, password } = body;
+    const { username, password, recaptchaToken } = body;
 
     if (!username || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    if (!recaptchaToken) {
+      return NextResponse.json({ error: "Verifikasi reCAPTCHA gagal" }, { status: 400 });
+    }
+
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY || "6Lfcj2otAAAAAH1BL5j83cHX190mDlxu1KBuBYWw";
+    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${recaptchaSecret}&response=${recaptchaToken}`,
+    });
+    
+    const verifyData = await verifyRes.json();
+    if (!verifyData.success || verifyData.score < 0.5) {
+      return NextResponse.json({ error: "Sistem mendeteksi aktivitas mencurigakan. Silakan coba lagi." }, { status: 403 });
     }
 
     const rows = await query(

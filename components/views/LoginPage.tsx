@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, Mail, Lock, RefreshCw, Eye, EyeOff, ArrowLeft, CheckCircle, Send, AlertCircle } from "lucide-react";
 import { Page } from "@/lib/types";
 import Image from "next/image";
+import Script from "next/script";
 
 const IMAGES = [
   "/ciamis1.jpg",
@@ -34,10 +35,20 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
     setError("");
     setLoading(true);
     try {
+      let recaptchaToken = "";
+      if (typeof window !== "undefined" && (window as any).grecaptcha) {
+        recaptchaToken = await new Promise((resolve) => {
+          (window as any).grecaptcha.ready(() => {
+            (window as any).grecaptcha.execute("6Lfcj2otAAAAAKXbO8hdyS_9NujA7hC3ggquAkTA", { action: "login" })
+              .then((token: string) => resolve(token));
+          });
+        });
+      }
+
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password: pass })
+        body: JSON.stringify({ username: email, password: pass, recaptchaToken })
       });
       const data = await res.json();
       
@@ -146,6 +157,7 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
 
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center bg-gray-50 p-8">
+        <Script src="https://www.google.com/recaptcha/api.js?render=6Lfcj2otAAAAAKXbO8hdyS_9NujA7hC3ggquAkTA" strategy="afterInteractive" />
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 justify-center mb-8">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
