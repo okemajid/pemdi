@@ -79,7 +79,7 @@ export default function RootLayout({
                           if (u && u.nama) {
                             originalFetch('/api/log', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json', 'x-internal-request': 'true' },
+                              headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ userId: u.nama, aksi: aksi, detail: detail })
                             }).catch(function(){});
                           }

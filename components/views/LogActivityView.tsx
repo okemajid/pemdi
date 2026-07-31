@@ -32,11 +32,7 @@ export function LogActivityView() {
   async function fetchLogs() {
     setLoading(true);
     try {
-      const res = await fetch("/api/log", {
-        headers: {
-          "x-internal-request": "true"
-        }
-      });
+      const res = await fetch("/api/log");
       if (res.ok) setLogs(await res.json());
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
