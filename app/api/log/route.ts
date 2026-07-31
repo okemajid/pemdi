@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    if (req.headers.get("x-internal-request") !== "true") {
+      return new NextResponse("Not Found", { status: 404 });
+    }
     const logs = await query(
       `SELECT id, user_id as userName, aksi, detail, DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') as createdAt
        FROM log_activity
@@ -18,6 +21,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    if (req.headers.get("x-internal-request") !== "true") {
+      return new NextResponse("Not Found", { status: 404 });
+    }
     const body = await req.json();
     // userId here stores the user's name (not their database ID)
     const { userId, aksi, detail } = body;
