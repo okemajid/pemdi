@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, Search, Activity, Filter, RefreshCw } from "lucide-react";
+import { Pagination } from "../ui/Pagination";
 
 interface LogItem {
   id: string;
@@ -137,37 +138,15 @@ export function LogActivityView() {
         
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50 flex-wrap gap-2">
             <span className="text-[10px] text-gray-500">
-              Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)} dari {filtered.length} log
+              Menampilkan {((currentPage - 1) * itemsPerPage) + 1}–{Math.min(currentPage * itemsPerPage, filtered.length)} dari {filtered.length} log
             </span>
-            <div className="flex items-center gap-1">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-              >
-                Sebelumnya
-              </button>
-              <div className="flex items-center gap-1 mx-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-colors ${page === currentPage ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-200"}`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-              >
-                Selanjutnya
-              </button>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
