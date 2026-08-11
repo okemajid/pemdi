@@ -270,7 +270,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                       strokeWidth={2} 
                     />
                     <Tooltip 
-                      formatter={(value: any, name: string) => [`${Number(value).toFixed(2)}`, name]} 
+                      formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name || ""]} 
                       labelFormatter={(label, payload) => {
                         return payload?.[0]?.payload?.fullNama || label;
                       }}
