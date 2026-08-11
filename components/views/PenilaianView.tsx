@@ -151,7 +151,18 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser, select
                         <td className="py-3.5 px-4 text-center text-gray-600">{ind.tipe}</td>
                         <td className="py-3.5 px-4 text-center text-gray-800 font-medium">{ind.bobot} %</td>
                         <td className="py-3.5 px-4 text-center text-gray-600">
-                          {doneDataDukung} / {totalDataDukung} Data Dukung
+                          <div className="flex flex-col items-center justify-center gap-1.5 w-full">
+                            <div className="flex w-full justify-between items-center text-[10px] font-medium px-1">
+                              <span>{doneDataDukung} / {totalDataDukung}</span>
+                              <span className="text-blue-600 font-bold">{totalDataDukung > 0 ? Math.round((doneDataDukung / totalDataDukung) * 100) : 0}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-blue-500 rounded-full transition-all duration-300" 
+                                style={{ width: `${totalDataDukung > 0 ? (doneDataDukung / totalDataDukung) * 100 : 0}%` }}
+                              />
+                            </div>
+                          </div>
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           <button

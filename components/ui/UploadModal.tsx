@@ -18,6 +18,7 @@ export function UploadModal({ kriteria, indikatorNama, onClose, onSuccess }: { k
       const formData = new FormData();
       formData.append("file", files[0]);
       formData.append("indikatorId", kriteria.indikatorId || "unknown");
+      formData.append("catatan", catatan);
 
       const res = await fetch(`/api/kriteria/${kriteria.id}/upload`, {
         method: "POST",

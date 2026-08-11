@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     }
 
     const kriteria = await query(
-      `SELECT id, indikator_id as indikatorId, level, label, bobot, deskripsi, status, file 
+      `SELECT id, indikator_id as indikatorId, level, label, bobot, deskripsi, status, file, catatan 
        FROM kriteria 
        WHERE indikator_id = ? 
        ORDER BY level ASC`,

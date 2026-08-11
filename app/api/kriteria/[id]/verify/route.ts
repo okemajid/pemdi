@@ -30,8 +30,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const indikatorId = kriteria.indikator_id;
 
       // Get indikator bobot
-      const [indikatorRow] = await query(`SELECT bobot FROM indikator WHERE id = ?`, [indikatorId]) as any[];
+      const [indikatorRow] = await query(`SELECT bobot, tipe FROM indikator WHERE id = ?`, [indikatorId]) as any[];
       const indikatorBobot = indikatorRow?.bobot || 0;
+      const indikatorTipe = indikatorRow?.tipe || "";
 
       // Recalculate nilai_capaian
       const verifiedKriteria = await query(
@@ -42,8 +43,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const kriteriaBobot = verifiedKriteria[0]?.total_bobot || 0;
       const maxLevel = verifiedKriteria[0]?.max_level ?? null;
 
-      let totalBobot = (indikatorBobot / 4) * kriteriaBobot;
-      if (kriteriaBobot >= 3.98) {
+      let effectiveKriteriaBobot = kriteriaBobot;
+      if (effectiveKriteriaBobot === 0 && (indikatorTipe.toLowerCase() === 'internal' || indikatorTipe.toLowerCase().includes('tidak direct') || indikatorTipe.toLowerCase().includes('indirect'))) {
+        effectiveKriteriaBobot = 1;
+      }
+
+      let totalBobot = (indikatorBobot / 5) * effectiveKriteriaBobot;
+      if (effectiveKriteriaBobot >= 4.98) {
         totalBobot = indikatorBobot;
       }
 

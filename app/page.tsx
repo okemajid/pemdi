@@ -19,6 +19,7 @@ import { IndikatorCrudView } from "@/components/views/IndikatorCrudView";
 import { KriteriaCrudView } from "@/components/views/KriteriaCrudView";
 import { LogActivityView } from "@/components/views/LogActivityView";
 import { TentangAplikasiView } from "@/components/views/TentangAplikasiView";
+import { SuratAdminView } from "@/components/views/SuratAdminView";
 
 import { PanduanView } from "@/components/views/PanduanView";
 
@@ -134,6 +135,8 @@ export default function App() {
     log_activity: { title: "Log Aktivitas", sub: "Pantau aktivitas pengguna di dalam sistem" },
     tentang: { title: "Tentang Aplikasi", sub: "Informasi sistem PEMDI, versi rilis, dan pusat bantuan" },
     panduan: { title: "Panduan Penggunaan", sub: "Petunjuk interaktif menggunakan aplikasi PEMDI" },
+    template_surat: { title: "Template Surat", sub: "Kelola template surat resmi PEMDI" },
+    surat_admin: { title: "Manajemen Template Surat", sub: "Kelola template surat resmi yang dapat diunduh publik" },
   };
 
   if (!mounted) return null;
@@ -178,6 +181,7 @@ export default function App() {
           {page === "indikator_crud" && <IndikatorCrudView setPage={setPage} setKriteriaIndikator={setKriteriaIndikator} selectedYear={selectedYear} />}
           {page === "kriteria_crud" && <KriteriaCrudView indikator={kriteriaIndikator} setPage={setPage} />}
           {page === "log_activity" && <LogActivityView />}
+          {page === "surat_admin" && <SuratAdminView />}
         </main>
 
         <footer className="border-t border-gray-100 px-5 py-2 bg-white flex items-center justify-between flex-shrink-0">

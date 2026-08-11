@@ -1,4 +1,4 @@
-export type Page = "landing" | "login" | "dashboard" | "penilaian" | "detail" | "users" | "roles" | "instansi" | "laporan" | "indikator_crud" | "kriteria_crud" | "log_activity" | "tentang" | "panduan";
+export type Page = "landing" | "login" | "dashboard" | "penilaian" | "detail" | "users" | "roles" | "instansi" | "laporan" | "indikator_crud" | "kriteria_crud" | "log_activity" | "tentang" | "panduan" | "template_surat" | "surat_admin";
 export type Role = "Super Admin" | "Admin Instansi" | "Operator OPD" | "Viewer";
 export type Kematangan = 1 | 2 | 3 | 4 | 5;
 export type UploadStatus = "uploaded" | "pending" | "rejected" | "empty" | "verified";
@@ -12,6 +12,7 @@ export interface KriteriaLevel {
   deskripsi: string;
   status: UploadStatus;
   file?: string;
+  catatan?: string;
 }
 
 export interface Indikator {
@@ -44,4 +45,17 @@ export interface UserItem {
   role: Role;
   status: "Aktif" | "Nonaktif";
   lastLogin: string;
+}
+
+export interface SuratTemplate {
+  id: string;
+  indikatorId?: string | null;
+  kriteriaLevel?: number | null;
+  nama: string;
+  deskripsi?: string | null;
+  filePath: string;
+  tipeDokumen: string;
+  uploadedBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, Users, Shield, LogOut, BarChart3, Menu, ListTree, Activity, Info } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, Shield, LogOut, BarChart3, Menu, ListTree, Activity, Info, FileText } from "lucide-react";
 import { Page } from "@/lib/types";
 
 interface CurrentUser {
@@ -65,6 +65,11 @@ export function Sidebar({ page, setPage, collapsed, setCollapsed, currentUser }:
   // Log Aktivitas - only Super Admin
   if (isSuperAdmin) {
     nav.push({ key: "log_activity" as Page, label: "Log Aktivitas", icon: Activity });
+  }
+
+  // Template Surat - only Super Admin (or specific role if needed, defaulting to Super Admin for now)
+  if (isSuperAdmin) {
+    nav.push({ key: "surat_admin" as Page, label: "Template Surat", icon: FileText });
   }
 
   return (

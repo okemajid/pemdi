@@ -411,6 +411,7 @@ export function IndikatorCrudView({
                 <th className="py-3 px-4 font-normal text-left">Nama Indikator</th>
                 <th className="py-3 px-4 font-normal text-center w-24">Tipe</th>
                 <th className="py-3 px-4 font-normal text-center w-20">Bobot</th>
+                <th className="py-3 px-4 font-normal text-center w-24">Kriteria</th>
                 <th className="py-3 px-4 font-normal text-center w-28">Hak Akses</th>
                 <th className="py-3 px-4 font-normal text-center w-24">Aksi</th>
               </tr>
@@ -418,14 +419,14 @@ export function IndikatorCrudView({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center">
+                  <td colSpan={7} className="px-5 py-12 text-center">
                     <Loader2 className="animate-spin text-blue-500 mx-auto" size={24} />
                     <p className="text-gray-400 mt-2">Memuat data...</p>
                   </td>
                 </tr>
               ) : aspeks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
+                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">
                     Tidak ada aspek ditemukan. Silakan tambahkan aspek terlebih dahulu.
                   </td>
                 </tr>
@@ -452,7 +453,7 @@ export function IndikatorCrudView({
                         <td className="py-3 px-4 text-center text-sm text-blue-900 font-semibold">
                           {aspek.bobot} %
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td colSpan={2} className="py-3 px-4 text-center">
                           {isOpen ? <ChevronUp size={16} className="mx-auto text-gray-400" /> : <ChevronDown size={16} className="mx-auto text-gray-400" />}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -470,7 +471,7 @@ export function IndikatorCrudView({
                       {/* Indicator Rows */}
                       {isOpen && aspekIndikators.length === 0 && !search && (
                         <tr className="border-b border-gray-100 bg-white">
-                          <td colSpan={6} className="py-4 px-4 text-center text-gray-500 italic">
+                          <td colSpan={7} className="py-4 px-4 text-center text-gray-500 italic">
                             Belum ada indikator di aspek ini
                           </td>
                         </tr>
@@ -486,6 +487,11 @@ export function IndikatorCrudView({
                             </span>
                           </td>
                           <td className="py-3.5 px-4 text-center text-gray-800 font-medium">{ind.bobot} %</td>
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-full">
+                              {(ind as any).kriteria?.length || 0} Kriteria
+                            </span>
+                          </td>
                           <td className="py-3.5 px-4 text-center">
                             <span className="text-[10px] bg-gray-100 text-gray-600 border border-gray-200 px-2 py-1 rounded-full">
                               {ind.aksesUsers?.length || 0} User
