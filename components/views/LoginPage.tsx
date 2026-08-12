@@ -123,7 +123,7 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
         
         {/* Top branding */}
         <div className="relative z-10 flex items-center gap-3">
-          <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={40} height={40} className="h-10 w-auto object-contain brightness-[1.15] drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
+          <Image src="/ciamis2.png" alt="Logo Ciamis" width={40} height={40} className="h-10 w-auto object-contain drop-shadow-md" />
           <div>
             <p className="text-white font-extrabold text-base leading-none">PEMDI</p>
             <p className="text-white/70 text-[10px] uppercase tracking-wider mt-1">Pemerintah Digital</p>
@@ -164,7 +164,7 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
         <Script src="https://www.google.com/recaptcha/api.js?render=6Lfcj2otAAAAAKXbO8hdyS_9NujA7hC3ggquAkTA" strategy="afterInteractive" />
         <div className="w-full max-w-sm mt-6 lg:mt-0">
           <div className="lg:hidden flex items-center gap-2 justify-center mb-8">
-            <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={36} height={36} className="h-9 w-auto object-contain drop-shadow-md" />
+            <Image src="/ciamis2.png" alt="Logo Ciamis" width={36} height={36} className="h-9 w-auto object-contain drop-shadow-md" />
             <span className="font-extrabold text-gray-900 text-lg tracking-wide">PEMDI</span>
           </div>
 

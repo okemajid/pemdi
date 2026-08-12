@@ -153,7 +153,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
       <nav className="fixed top-0 inset-x-0 z-50 border-b border-white/10 backdrop-blur-xl" style={{ background: "rgba(13,31,64,0.92)" }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setPage("landing")}>
-            <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={36} height={36} className="h-9 w-auto object-contain brightness-[1.15] drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
+            <Image src="/ciamis2.png" alt="Logo Ciamis" width={36} height={36} className="h-9 w-auto object-contain drop-shadow-md" />
             <div>
               <p className="text-white font-extrabold text-sm leading-none">PEMDI</p>
               <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide hidden sm:block">Pemerintah Digital</p>
@@ -194,12 +194,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
         </div>
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
-          <FadeInSection>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/[0.08] border border-white/[0.15] rounded-full text-white/80 text-xs font-semibold mb-8 backdrop-blur-sm">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              Sistem Resmi Pemerintah Kabupaten Ciamis — Tahun Anggaran {data?.tahunTerkini || 2026}
-            </div>
-          </FadeInSection>
+
           <FadeInSection delay={100}>
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-white leading-tight mb-5">
               Penilaian Mandiri<br />
@@ -535,7 +530,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
       <footer className="bg-gray-900 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={28} height={28} className="h-7 w-auto object-contain brightness-[1.15] drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]" />
+            <Image src="/ciamis2.png" alt="Logo Ciamis" width={28} height={28} className="h-7 w-auto object-contain grayscale opacity-80" />
             <div>
               <p className="text-white/70 text-xs font-bold">PEMDI Ciamis</p>
               <p className="text-white/30 text-[10px]">Pemerintah Digital</p>

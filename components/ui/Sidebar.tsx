@@ -13,11 +13,11 @@ interface CurrentUser {
 function PemdiLogo({ size = 16 }: { size?: number }) {
   return (
     <img 
-      src="/pemdi_logo_transparent.png" 
-      alt="Logo PEMDI Kabupaten Ciamis" 
+      src="/ciamis2.png" 
+      alt="Logo Kabupaten Ciamis" 
       width={size} 
       height={size} 
-      className="object-contain rounded-md brightness-[1.15] drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+      className="object-contain drop-shadow-sm"
     />
   );
 }
