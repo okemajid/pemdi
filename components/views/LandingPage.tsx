@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen, FileText, Download, CheckCircle2, Eye, LayoutTemplate, TrendingUp } from "lucide-react";
 import { Page, Kematangan, SuratTemplate } from "@/lib/types";
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
@@ -151,13 +152,11 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* Nav */}
       <nav className="fixed top-0 inset-x-0 z-50 border-b border-white/10 backdrop-blur-xl" style={{ background: "rgba(13,31,64,0.92)" }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
-              <ShieldCheck size={18} className="text-white" />
-            </div>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setPage("landing")}>
+            <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={36} height={36} className="h-9 w-auto object-contain brightness-[1.15] drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
             <div>
               <p className="text-white font-extrabold text-sm leading-none">PEMDI</p>
-              <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide hidden sm:block">Penilaian Kematangan Digital Indonesia</p>
+              <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide hidden sm:block">Pemerintah Digital</p>
             </div>
           </div>
           {/* Desktop nav */}
@@ -536,12 +535,10 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
       <footer className="bg-gray-900 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
-              <ShieldCheck size={13} className="text-white" />
-            </div>
+            <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={28} height={28} className="h-7 w-auto object-contain brightness-[1.15] drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]" />
             <div>
               <p className="text-white/70 text-xs font-bold">PEMDI Ciamis</p>
-              <p className="text-white/30 text-[10px]">Penilaian Kematangan Digital Indonesia</p>
+              <p className="text-white/30 text-[10px]">Pemerintah Digital</p>
             </div>
           </div>
           <div className="text-center sm:text-right">

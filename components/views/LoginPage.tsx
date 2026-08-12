@@ -123,12 +123,10 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
         
         {/* Top branding */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
-            <ShieldCheck size={18} className="text-white" />
-          </div>
+          <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={40} height={40} className="h-10 w-auto object-contain brightness-[1.15] drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
           <div>
-            <p className="text-white font-extrabold text-base">PEMDI</p>
-            <p className="text-white/70 text-[10px] uppercase tracking-wider">Penilaian Kematangan Digital</p>
+            <p className="text-white font-extrabold text-base leading-none">PEMDI</p>
+            <p className="text-white/70 text-[10px] uppercase tracking-wider mt-1">Pemerintah Digital</p>
           </div>
         </div>
 
@@ -156,14 +154,18 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center bg-gray-50 p-8">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 p-8 relative">
+        <button 
+          onClick={() => setPage("landing")}
+          className="absolute top-8 right-8 flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft size={14} /> Kembali ke Beranda
+        </button>
         <Script src="https://www.google.com/recaptcha/api.js?render=6Lfcj2otAAAAAKXbO8hdyS_9NujA7hC3ggquAkTA" strategy="afterInteractive" />
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm mt-6 lg:mt-0">
           <div className="lg:hidden flex items-center gap-2 justify-center mb-8">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#C0392B,#E74C3C)" }}>
-              <ShieldCheck size={16} className="text-white" />
-            </div>
-            <span className="font-extrabold text-gray-900">PEMDI</span>
+            <Image src="/pemdi_logo_transparent.png" alt="PEMDI Logo" width={36} height={36} className="h-9 w-auto object-contain drop-shadow-md" />
+            <span className="font-extrabold text-gray-900 text-lg tracking-wide">PEMDI</span>
           </div>
 
           {/* LOGIN FORM */}
