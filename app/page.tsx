@@ -168,7 +168,12 @@ export default function App() {
         <Sidebar page={page} setPage={setPage} collapsed={collapsed} setCollapsed={setCollapsed} currentUser={currentUser} />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <TopBar title={title} sub={sub} selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
+        <TopBar 
+          title={title} 
+          sub={sub} 
+          selectedYear={["surat_admin", "roles", "log_activity", "users", "instansi", "tentang", "panduan"].includes(page) ? undefined : selectedYear} 
+          setSelectedYear={setSelectedYear} 
+        />
 
         <main className="flex-1 overflow-y-auto">
           {page === "dashboard" && <DashboardView setPage={setPage} selectedYear={selectedYear} currentUser={currentUser} />}

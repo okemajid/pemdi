@@ -143,6 +143,7 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser, select
                   {isOpen && aspek.indikators.map((ind, idx) => {
                     const totalDataDukung = ind.kriteria?.length || 0;
                     const doneDataDukung = ind.kriteria?.filter(k => k.status === "uploaded" || k.status === "verified").length || 0;
+                    const pctVal = totalDataDukung > 0 ? Math.round((doneDataDukung / totalDataDukung) * 100) : 0;
                     
                     return (
                       <tr key={ind.id} className="border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors">
@@ -153,14 +154,28 @@ export function PenilaianView({ setPage, setDetailIndikator, currentUser, select
                         <td className="py-3.5 px-4 text-center text-gray-600">
                           <div className="flex flex-col items-center justify-center gap-1.5 w-full">
                             <div className="flex w-full justify-between items-center text-[10px] font-medium px-1">
-                              <span>{doneDataDukung} / {totalDataDukung}</span>
-                              <span className="text-blue-600 font-bold">{totalDataDukung > 0 ? Math.round((doneDataDukung / totalDataDukung) * 100) : 0}%</span>
+                              <span>Data Dukung: {doneDataDukung} / {totalDataDukung}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-blue-500 rounded-full transition-all duration-300" 
-                                style={{ width: `${totalDataDukung > 0 ? (doneDataDukung / totalDataDukung) * 100 : 0}%` }}
+                                className="h-full rounded-full transition-all duration-300" 
+                                style={{ 
+                                  width: `${pctVal}%`,
+                                  background: pctVal >= 85
+                                    ? 'linear-gradient(90deg,#059669,#34d399)'
+                                    : pctVal >= 60
+                                    ? 'linear-gradient(90deg,#1B3A6B,#2E5BA8)'
+                                    : pctVal >= 30
+                                    ? 'linear-gradient(90deg,#b45309,#f59e0b)'
+                                    : 'linear-gradient(90deg,#b91c1c,#ef4444)'
+                                }}
                               />
+                              <span
+                                className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white"
+                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                              >
+                                {pctVal}%
+                              </span>
                             </div>
                           </div>
                         </td>

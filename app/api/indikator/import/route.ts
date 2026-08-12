@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const tahun = parseInt(formData.get("tahun") as string || "2026", 10);
+
     // Read file buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -200,8 +202,8 @@ export async function POST(req: NextRequest) {
     // Cache aspek map: no_aspek -> id
     const aspekMap: Record<number, string> = {};
 
-    // Load existing aspeks
-    const existingAspeks = (await query(`SELECT id, no FROM aspek`)) as { id: string; no: number }[];
+    // Load existing aspeks for the specified tahun
+    const existingAspeks = (await query(`SELECT id, no FROM aspek WHERE tahun = ?`, [tahun])) as { id: string; no: number }[];
     existingAspeks.forEach((a) => {
       aspekMap[a.no] = a.id;
     });
@@ -213,9 +215,9 @@ export async function POST(req: NextRequest) {
           // Create new aspek
           const aspekId = `a_${Date.now()}_${data.no_aspek}`;
           await query(
-            `INSERT INTO aspek (id, no, nama, bobot) VALUES (?, ?, ?, ?)
+            `INSERT INTO aspek (id, no, nama, bobot, tahun) VALUES (?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE nama = VALUES(nama), bobot = VALUES(bobot)`,
-            [aspekId, data.no_aspek, data.nama_aspek, data.bobot_aspek]
+            [aspekId, data.no_aspek, data.nama_aspek, data.bobot_aspek, tahun]
           );
           aspekMap[data.no_aspek] = aspekId;
           result.aspekCreated++;

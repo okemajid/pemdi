@@ -67,10 +67,11 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
   const totalNilaiCapaian = aspeks.flatMap(a => a.indikators).reduce((s, i) => s + convertedNilaiDashboard(i), 0);
   const nilaiRata = (5 / 100) * totalNilaiCapaian;
 
+  const TARGET_NASIONAL = 1.7;
   const radarData = aspeks.map(a => ({
     domain: a.nama.split(" ").slice(0, 2).join(" "),
     capaian: a.indikators.reduce((s, i) => s + convertedNilaiDashboard(i), 0),
-    target: a.bobot,
+    target: TARGET_NASIONAL,
   }));
 
   const pieData = [
@@ -102,8 +103,20 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
           <div className="text-center">
             <p className="text-white/50 text-[10px] uppercase tracking-wide">Dokumen Lengkap</p>
             <p className="text-3xl font-extrabold text-white">{pct}%</p>
-            <div className="w-24 h-1.5 bg-white/15 rounded-full mt-1.5">
-              <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
+            <div className="relative w-32 h-4 bg-white/15 rounded-full mt-1.5 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${pct}%`,
+                  background: pct >= 85 ? '#34d399' : pct >= 60 ? '#3b82f6' : pct >= 30 ? '#f59e0b' : '#ef4444'
+                }}
+              />
+              <span
+                className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                {pct}%
+              </span>
             </div>
           </div>
         </div>
@@ -141,7 +154,7 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
               <PolarGrid stroke="#f1f5f9" />
               <PolarAngleAxis dataKey="domain" tick={{ fontSize: 9, fill: "#94a3b8" }} />
               <Radar name="Capaian" dataKey="capaian" fill="#1B3A6B" fillOpacity={0.25} stroke="#1B3A6B" strokeWidth={2} />
-              <Radar name="Target" dataKey="target" fill="transparent" stroke="#e2e8f0" strokeWidth={1} strokeDasharray="4 2" />
+              <Radar name="Target Nasional" dataKey="target" fill="transparent" stroke="#e2e8f0" strokeWidth={1} strokeDasharray="4 2" />
               <Tooltip formatter={(v: any) => Number(v).toFixed(2)} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
             </RadarChart>
           </ResponsiveContainer>
@@ -189,8 +202,26 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
                     <span className="text-xs font-semibold text-gray-700">{a.no}. {a.nama}</span>
                     <span className="text-[11px] text-gray-400">{Number(nilaiAspek.toFixed(1))}/{a.bobot} · {pctAspek}%</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pctAspek}%`, background: "linear-gradient(90deg,#1B3A6B,#2E5BA8)" }} />
+                  <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${pctAspek}%`,
+                        background: pctAspek >= 85
+                          ? 'linear-gradient(90deg,#059669,#34d399)'
+                          : pctAspek >= 60
+                          ? 'linear-gradient(90deg,#1B3A6B,#2E5BA8)'
+                          : pctAspek >= 30
+                          ? 'linear-gradient(90deg,#b45309,#f59e0b)'
+                          : 'linear-gradient(90deg,#b91c1c,#ef4444)'
+                      }}
+                    />
+                    <span
+                      className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
+                    >
+                      {pctAspek}%
+                    </span>
                   </div>
                 </div>
               );

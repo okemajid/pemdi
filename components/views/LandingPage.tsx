@@ -1,10 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen, FileText, Download, CheckCircle2, Eye, LayoutTemplate } from "lucide-react";
+import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen, FileText, Download, CheckCircle2, Eye, LayoutTemplate, TrendingUp } from "lucide-react";
 import { Page, Kematangan, SuratTemplate } from "@/lib/types";
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  BarChart, Bar, Cell,
+} from "recharts";
 
 function AnimatedCounter({ target, suffix = "", decimals = 0 }: { target: number; suffix?: string; decimals?: number }) {
   const [count, setCount] = useState(0);
@@ -89,7 +93,15 @@ interface LandingData {
     }[];
   }[];
   tahunTerkini: number;
+  trenAspekPerTahun: Record<string, number | string>[];
+  aspekKeys: string[];
 }
+
+// Palet warna untuk aspek di grafik tren
+const ASPEK_COLORS = [
+  "#3B82F6", "#F59E0B", "#10B981", "#8B5CF6",
+  "#EF4444", "#F97316", "#06B6D4", "#EC4899",
+];
 
 export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
   const [data, setData] = useState<LandingData | null>(null);
@@ -231,56 +243,180 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* Capaian per Aspek (Radar Chart) */}
       {data && data.capaianAspek && data.capaianAspek.length > 0 && (
         <section className="py-14 sm:py-20 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <FadeInSection>
               <div className="text-center mb-10">
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Hasil Implementasi Penilaian</h2>
-                <p className="text-gray-500 text-sm mt-2">Nilai Target dan Capaian per Domain Penilaian (Tahun {data.tahunTerkini})</p>
+                <p className="text-gray-500 text-sm mt-2">Nilai Target dan Capaian per Domain Penilaian — Tahun {data.tahunTerkini}</p>
               </div>
             </FadeInSection>
             
-            <FadeInSection delay={100}>
-              <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-10 shadow-sm">
-                <ResponsiveContainer width="100%" height={400}>
-                  <RadarChart 
-                    data={data.capaianAspek.map(a => ({
-                      domain: a.nama.split(" ").slice(0, 3).join(" "),
-                      capaian: a.nilai,
-                      target: a.bobot,
-                      fullNama: a.nama
-                    }))}
-                    margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
-                  >
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="domain" tick={{ fontSize: 10, fill: "#64748b", fontWeight: 600 }} />
-                    <Radar 
-                      name="Aspek PEMDI Target" 
-                      dataKey="target" 
-                      fill="#3B82F6" 
-                      fillOpacity={0.5} 
-                      stroke="#3B82F6" 
-                      strokeWidth={2} 
-                    />
-                    <Radar 
-                      name="Aspek PEMDI Indeks (Capaian)" 
-                      dataKey="capaian" 
-                      fill="#F43F5E" 
-                      fillOpacity={0.5} 
-                      stroke="#F43F5E" 
-                      strokeWidth={2} 
-                    />
-                    <Tooltip 
-                      formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name || ""]} 
-                      labelFormatter={(label, payload) => {
-                        return payload?.[0]?.payload?.fullNama || label;
-                      }}
-                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-                    />
-                    <Legend wrapperStyle={{ fontSize: '12px', marginTop: '10px' }} />
-                  </RadarChart>
-                </ResponsiveContainer>
+            {/* Layout: Radar Chart + Bar Chart per Aspek */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Radar Chart */}
+              <FadeInSection delay={100}>
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-8 shadow-sm h-full">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Peta Radar Capaian</p>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RadarChart 
+                      data={data.capaianAspek.map(a => ({
+                        domain: a.nama.split(" ").slice(0, 3).join(" "),
+                        capaian: a.nilai,
+                        target: 1.7,
+                        fullNama: a.nama
+                      }))}
+                      margin={{ top: 10, right: 20, bottom: 10, left: 20 }}
+                    >
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="domain" tick={{ fontSize: 9, fill: "#64748b", fontWeight: 600 }} />
+                      <Radar 
+                        name="Target Nasional" 
+                        dataKey="target" 
+                        fill="#3B82F6" 
+                        fillOpacity={0.45} 
+                        stroke="#3B82F6" 
+                        strokeWidth={2} 
+                      />
+                      <Radar 
+                        name="Nilai Capaian" 
+                        dataKey="capaian" 
+                        fill="#F43F5E" 
+                        fillOpacity={0.45} 
+                        stroke="#F43F5E" 
+                        strokeWidth={2} 
+                      />
+                      <Tooltip 
+                        formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name || ""]} 
+                        labelFormatter={(_label: any, payload: any) => payload?.[0]?.payload?.fullNama || _label}
+                        contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} 
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </FadeInSection>
+
+              {/* Bar Chart Capaian per Aspek */}
+              <FadeInSection delay={200}>
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-8 shadow-sm h-full">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Nilai Capaian per Aspek</p>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={data.capaianAspek.map(a => ({
+                        nama: a.nama.length > 12 ? a.nama.substring(0, 12) + "…" : a.nama,
+                        fullNama: a.nama,
+                        capaian: a.nilai,
+                        bobot: a.bobot,
+                        pct: a.pct,
+                      }))}
+                      margin={{ top: 10, right: 10, bottom: 40, left: -10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="nama" tick={{ fontSize: 9, fill: "#64748b" }} angle={-30} textAnchor="end" interval={0} />
+                      <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} domain={[0, 'dataMax']} />
+                      <Tooltip
+                        formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name === "capaian" ? "Nilai Capaian" : "Bobot"]}
+                        labelFormatter={(_l: any, payload: any) => payload?.[0]?.payload?.fullNama || _l}
+                        contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      <Bar dataKey="bobot" name="Bobot Target" fill="#BFDBFE" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="capaian" name="Nilai Capaian" radius={[4, 4, 0, 0]}>
+                        {data.capaianAspek.map((_a, idx) => (
+                          <Cell key={idx} fill={ASPEK_COLORS[idx % ASPEK_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </FadeInSection>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Tren Nilai Per Tahun */}
+      {data && data.indexPerTahun && data.indexPerTahun.length > 0 && (
+        <section className="py-14 sm:py-20 bg-white">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <FadeInSection>
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-4" style={{ background: "#EFF6FF", color: "#1D4ED8" }}>
+                  <TrendingUp size={13} />
+                  Analisis Tren Multi-Tahun
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Tren Capaian Nilai PEMDI</h2>
+                <p className="text-gray-500 text-sm mt-2">Perkembangan indeks kematangan dan nilai per aspek dari tahun ke tahun</p>
               </div>
             </FadeInSection>
+
+            <div className="grid grid-cols-1 gap-6">
+              {/* Line Chart: Tren Indeks Keseluruhan */}
+              <FadeInSection delay={100}>
+                <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm">
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tren Indeks Kematangan Digital Keseluruhan (Skala 0–5)</p>
+                  </div>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <LineChart data={data.indexPerTahun} margin={{ top: 5, right: 20, bottom: 5, left: -10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="tahun" tick={{ fontSize: 11, fill: "#64748b" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} domain={[0, 5]} />
+                      <Tooltip
+                        formatter={(value: any) => [`${Number(value).toFixed(2)}`, "Indeks Kematangan"]}
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.07)' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="nilai"
+                        name="Indeks Kematangan"
+                        stroke="#3B82F6"
+                        strokeWidth={3}
+                        dot={{ r: 5, fill: "#3B82F6", stroke: "white", strokeWidth: 2 }}
+                        activeDot={{ r: 7 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </FadeInSection>
+
+              {/* Bar Chart: Tren Nilai per Aspek per Tahun */}
+              {data.trenAspekPerTahun && data.trenAspekPerTahun.length > 0 && data.aspekKeys && data.aspekKeys.length > 0 && (
+                <FadeInSection delay={200}>
+                  <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm">
+                    <div className="flex items-center gap-2 mb-5">
+                      <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tren Nilai Capaian per Aspek per Tahun</p>
+                    </div>
+                    <ResponsiveContainer width="100%" height={320}>
+                      <BarChart data={data.trenAspekPerTahun} margin={{ top: 5, right: 20, bottom: 80, left: -10 }} barCategoryGap="25%" barGap={2}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="tahun" tick={{ fontSize: 12, fill: "#64748b" }} />
+                        <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                        <Tooltip
+                          formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name]}
+                          contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.07)' }}
+                        />
+                        <Legend
+                          wrapperStyle={{ fontSize: '10px', paddingTop: '16px' }}
+                          formatter={(value: string) => <span style={{ color: '#64748b' }}>{value}</span>}
+                        />
+                        {data.aspekKeys.map((key, idx) => (
+                          <Bar
+                            key={key}
+                            dataKey={key}
+                            name={key}
+                            fill={ASPEK_COLORS[idx % ASPEK_COLORS.length]}
+                            radius={[3, 3, 0, 0]}
+                          />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </FadeInSection>
+              )}
+            </div>
           </div>
         </section>
       )}

@@ -35,8 +35,26 @@ export function InstansiView() {
                 <td className="px-4 py-3.5 text-gray-500">{inst.provinsi}</td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${(inst.indeks / 5) * 100}%`, background: MATURITY_COLORS[inst.indeks < 2 ? 1 : inst.indeks < 3 ? 2 : inst.indeks < 4 ? 3 : inst.indeks < 4.5 ? 4 : 5] }} />
+                    <div className="relative w-24 h-4 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${(inst.indeks / 5) * 100}%`,
+                          background: (inst.indeks / 5) * 100 >= 85
+                            ? 'linear-gradient(90deg,#059669,#34d399)'
+                            : (inst.indeks / 5) * 100 >= 60
+                            ? 'linear-gradient(90deg,#1B3A6B,#2E5BA8)'
+                            : (inst.indeks / 5) * 100 >= 30
+                            ? 'linear-gradient(90deg,#b45309,#f59e0b)'
+                            : 'linear-gradient(90deg,#b91c1c,#ef4444)'
+                        }}
+                      />
+                      <span
+                        className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white"
+                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                      >
+                        {Math.round((inst.indeks / 5) * 100)}%
+                      </span>
                     </div>
                     <span className="font-extrabold text-gray-900">{inst.indeks.toFixed(2)}</span>
                   </div>

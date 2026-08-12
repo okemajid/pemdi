@@ -159,6 +159,7 @@ export function IndikatorCrudView({
     try {
       const fd = new FormData();
       fd.append("file", importFile);
+      fd.append("tahun", selectedYear);
       const res = await fetch("/api/indikator/import", { method: "POST", body: fd });
       const json = await res.json();
       if (res.ok && json.success) {
@@ -326,7 +327,8 @@ export function IndikatorCrudView({
         body: JSON.stringify({
           ...formAspek,
           no: Number(formAspek.no),
-          bobot: Number(formAspek.bobot)
+          bobot: Number(formAspek.bobot),
+          tahun: Number(selectedYear)
         })
       });
 

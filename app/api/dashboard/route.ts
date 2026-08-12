@@ -16,17 +16,27 @@ export async function GET(req: NextRequest) {
         SELECT i.* 
         FROM indikator i
         JOIN indikator_akses ia ON i.id = ia.indikator_id
-        WHERE ia.user_id = ?
+        JOIN aspek a ON i.aspek_id = a.id
+        WHERE ia.user_id = ? AND a.tahun = ?
         ORDER BY CAST(SUBSTRING_INDEX(i.no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(i.no, '.', -1) AS UNSIGNED)
-      `, [userId]) as any[];
+      `, [userId, tahun]) as any[];
     } else {
-      indikatorsRows = await query("SELECT * FROM indikator ORDER BY CAST(SUBSTRING_INDEX(no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(no, '.', -1) AS UNSIGNED)") as any[];
+      indikatorsRows = await query(`
+        SELECT i.* 
+        FROM indikator i
+        JOIN aspek a ON i.aspek_id = a.id
+        WHERE a.tahun = ?
+        ORDER BY CAST(SUBSTRING_INDEX(i.no, '.', 1) AS UNSIGNED), CAST(SUBSTRING_INDEX(i.no, '.', -1) AS UNSIGNED)
+      `, [tahun]) as any[];
     }
     const kriteriaRows = await query(`
       SELECT k.* 
       FROM kriteria k 
+      JOIN indikator i ON k.indikator_id = i.id
+      JOIN aspek a ON i.aspek_id = a.id
+      WHERE a.tahun = ?
       ORDER BY k.level ASC
-    `) as any[];
+    `, [tahun]) as any[];
 
     const kriteriaMap = new Map();
     kriteriaRows.forEach(k => {

@@ -186,7 +186,7 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
             {aspeks.map(a => {
               const nilaiAspek = a.indikators.reduce((s: number, i: any) => s + (convertedNilai(i) || 0), 0);
               // Progress bar: full (100%) saat semua indikator fully verified
-              const pct = a.bobot > 0 ? Math.min((nilaiAspek / a.bobot) * 100, 100) : 0;
+              const pct = a.bobot > 0 ? Math.round(Math.min((nilaiAspek / a.bobot) * 100, 100)) : 0;
               // Predikat: weighted average dari predikat indikator (berdasarkan bobot)
               const indWithPredikat = a.indikators.filter((i: any) => i.predikat && PREDIKAT_RANK[i.predikat]);
               const totalBobotPred = indWithPredikat.reduce((s: number, i: any) => s + i.bobot, 0);
@@ -211,8 +211,26 @@ export function LaporanView({ selectedYear, currentUser }: { selectedYear: strin
                       <span className="text-xs font-extrabold text-gray-900">{Number(nilaiAspek.toFixed(1))}</span>
                     </div>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
+                  <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${pct}%`,
+                        background: pct >= 85
+                          ? 'linear-gradient(90deg,#059669,#34d399)'
+                          : pct >= 60
+                          ? 'linear-gradient(90deg,#1B3A6B,#2E5BA8)'
+                          : pct >= 30
+                          ? 'linear-gradient(90deg,#b45309,#f59e0b)'
+                          : 'linear-gradient(90deg,#b91c1c,#ef4444)'
+                      }}
+                    />
+                    <span
+                      className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
+                    >
+                      {pct}%
+                    </span>
                   </div>
                 </div>
               );
