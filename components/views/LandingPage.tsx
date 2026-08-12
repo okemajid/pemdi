@@ -77,12 +77,12 @@ interface LandingData {
   totalVerified: number;
   avgIndeks: string;
   indexPerTahun: { tahun: number; nilai: number }[];
-  capaianAspek: { 
+  capaianAspek: {
     id: string;
-    no: number; 
-    nama: string; 
-    bobot: number; 
-    nilai: number; 
+    no: number;
+    nama: string;
+    bobot: number;
+    nilai: number;
     pct: number;
     indikators?: {
       no: string;
@@ -118,7 +118,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
           const json = await resStats.json();
           if (json.success) setData(json.data);
         }
-        
+
         const resTemplates = await fetch("/api/surat-template");
         if (resTemplates.ok) {
           const jsonTpl = await resTemplates.json();
@@ -156,7 +156,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
             <Image src="/ciamis2.png" alt="Logo Ciamis" width={36} height={36} className="h-9 w-auto object-contain drop-shadow-md" />
             <div>
               <p className="text-white font-extrabold text-sm leading-none">PEMDI</p>
-              <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide hidden sm:block">Pemerintah Digital</p>
+              <p className="text-white/40 text-[9px] leading-none mt-0.5 uppercase tracking-wide hidden sm:block">Pemerintah Digital Kabupaten Ciamis</p>
             </div>
           </div>
           {/* Desktop nav */}
@@ -244,7 +244,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                 <p className="text-gray-500 text-sm mt-2">Nilai Target dan Capaian per Domain Penilaian — Tahun {data.tahunTerkini}</p>
               </div>
             </FadeInSection>
-            
+
             {/* Layout: Radar Chart + Bar Chart per Aspek */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Radar Chart */}
@@ -252,7 +252,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-8 shadow-sm h-full">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Peta Radar Capaian</p>
                   <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart 
+                    <RadarChart
                       data={data.capaianAspek.map(a => ({
                         domain: a.nama.split(" ").slice(0, 3).join(" "),
                         capaian: a.nilai,
@@ -263,26 +263,26 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                     >
                       <PolarGrid stroke="#e2e8f0" />
                       <PolarAngleAxis dataKey="domain" tick={{ fontSize: 9, fill: "#64748b", fontWeight: 600 }} />
-                      <Radar 
-                        name="Target Nasional" 
-                        dataKey="target" 
-                        fill="#3B82F6" 
-                        fillOpacity={0.45} 
-                        stroke="#3B82F6" 
-                        strokeWidth={2} 
+                      <Radar
+                        name="Target Nasional"
+                        dataKey="target"
+                        fill="#3B82F6"
+                        fillOpacity={0.45}
+                        stroke="#3B82F6"
+                        strokeWidth={2}
                       />
-                      <Radar 
-                        name="Nilai Capaian" 
-                        dataKey="capaian" 
-                        fill="#F43F5E" 
-                        fillOpacity={0.45} 
-                        stroke="#F43F5E" 
-                        strokeWidth={2} 
+                      <Radar
+                        name="Nilai Capaian"
+                        dataKey="capaian"
+                        fill="#F43F5E"
+                        fillOpacity={0.45}
+                        stroke="#F43F5E"
+                        strokeWidth={2}
                       />
-                      <Tooltip 
-                        formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name || ""]} 
+                      <Tooltip
+                        formatter={(value: any, name: any) => [`${Number(value).toFixed(2)}`, name || ""]}
                         labelFormatter={(_label: any, payload: any) => payload?.[0]?.payload?.fullNama || _label}
-                        contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} 
+                        contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }}
                       />
                       <Legend wrapperStyle={{ fontSize: '11px' }} />
                     </RadarChart>
@@ -471,7 +471,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
               <p className="text-gray-500 text-sm mt-2">Unduh format resmi yang dapat digunakan untuk keperluan Anda</p>
             </div>
           </FadeInSection>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {loading ? (
               <div className="col-span-full py-10 text-center text-gray-500">Memuat template...</div>
@@ -482,7 +482,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                 <FadeInSection key={tpl.id} delay={i * 50}>
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col h-full hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-500" />
-                    
+
                     <div className="flex items-start gap-4 relative z-10">
                       <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                         <LayoutTemplate size={24} />
@@ -495,9 +495,9 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                         <p className="text-xs text-gray-500 line-clamp-2">{tpl.deskripsi}</p>
                       </div>
                     </div>
-                    
+
                     <div className="mt-auto pt-5 relative z-10">
-                      <a 
+                      <a
                         href={tpl.filePath}
                         target="_blank"
                         rel="noreferrer"

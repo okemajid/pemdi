@@ -5,9 +5,9 @@ import Image from "next/image";
 import Script from "next/script";
 
 const IMAGES = [
-  "/ciamis1.jpg",
-  "/ciamis2.png",
-  "/ciamis3.jpg",
+  "/slide_stadion.jpg",
+  "/slide_pendopo.jpg",
+  "/slide_alunalun.jpg",
 ];
 
 export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => void; onLoginSuccess?: (u: any) => void }) {
@@ -51,7 +51,7 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
         body: JSON.stringify({ username: email, password: pass, recaptchaToken })
       });
       const data = await res.json();
-      
+
       if (res.ok && data.success) {
         if (onLoginSuccess) {
           onLoginSuccess(data.user);
@@ -120,20 +120,20 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
         ))}
         {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f40] via-[#0d1f40]/80 to-transparent mix-blend-multiply" />
-        
+
         {/* Top branding */}
         <div className="relative z-10 flex items-center gap-3">
           <Image src="/ciamis2.png" alt="Logo Ciamis" width={40} height={40} className="h-10 w-auto object-contain drop-shadow-md" />
           <div>
             <p className="text-white font-extrabold text-base leading-none">PEMDI</p>
-            <p className="text-white/70 text-[10px] uppercase tracking-wider mt-1">Pemerintah Digital</p>
+            <p className="text-white/70 text-[10px] uppercase tracking-wider mt-1">Pemerintah Digital Kabupaten Ciamis</p>
           </div>
         </div>
 
         {/* Bottom content */}
         <div className="relative z-10">
           <h2 className="text-3xl font-extrabold text-white leading-tight mb-4 drop-shadow-md">
-            Sistem Penilaian<br />Mandiri Pemerintah<br />Digital Indonesia
+            Sistem Penilaian<br />Mandiri Pemerintah<br />Digital Kabupaten Ciamis
           </h2>
           <p className="text-white/80 text-sm leading-relaxed max-w-sm drop-shadow">
             Platform resmi pengukuran kematangan transformasi digital di lingkungan Pemerintah Kabupaten Ciamis.
@@ -155,7 +155,7 @@ export function LoginPage({ setPage, onLoginSuccess }: { setPage: (p: Page) => v
 
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center bg-gray-50 p-8 relative">
-        <button 
+        <button
           onClick={() => setPage("landing")}
           className="absolute top-8 right-8 flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
         >
