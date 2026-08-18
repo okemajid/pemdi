@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     sql += " ORDER BY st.created_at DESC";
 
-    const rows = await query(sql, values);
+    const rows = (await query(sql, values)) as any[];
     const mappedRows = rows.map((row: any) => ({
       id: row.id,
       indikatorId: row.indikator_id,
