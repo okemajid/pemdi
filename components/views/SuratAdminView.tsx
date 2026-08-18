@@ -91,6 +91,12 @@ export function SuratAdminView() {
           method: "PATCH",
           body: data,
         });
+        
+        if (!res.ok) {
+          if (res.status === 413) throw new Error("Ukuran file terlalu besar (Maks 5MB).");
+          throw new Error("Gagal mengupdate template (Server Error)");
+        }
+        
         const result = await res.json();
         if (result.success) {
           await fetchTemplates();
@@ -117,6 +123,11 @@ export function SuratAdminView() {
           body: data,
         });
         
+        if (!res.ok) {
+          if (res.status === 413) throw new Error("Ukuran file terlalu besar (Maks 5MB).");
+          throw new Error("Gagal membuat template (Server Error)");
+        }
+        
         const result = await res.json();
         if (result.success) {
           await fetchTemplates();
@@ -125,9 +136,9 @@ export function SuratAdminView() {
           setErrorMsg(result.error || "Gagal membuat template");
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setErrorMsg("Terjadi kesalahan jaringan");
+      setErrorMsg(err.message || "Terjadi kesalahan jaringan atau server");
     } finally {
       setFormLoading(false);
     }

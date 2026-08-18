@@ -68,11 +68,15 @@ export function DashboardView({ setPage, selectedYear, currentUser }: { setPage:
   const nilaiRata = (5 / 100) * totalNilaiCapaian;
 
   const TARGET_NASIONAL = 1.7;
-  const radarData = aspeks.map(a => ({
-    domain: a.nama.split(" ").slice(0, 2).join(" "),
-    capaian: a.indikators.reduce((s, i) => s + convertedNilaiDashboard(i), 0),
-    target: TARGET_NASIONAL,
-  }));
+  const radarData = aspeks.map(a => {
+    const nilaiAspek = a.indikators.reduce((s, i) => s + convertedNilaiDashboard(i), 0);
+    const capaianSkala5 = a.bobot > 0 ? (nilaiAspek / a.bobot) * 5 : 0;
+    return {
+      domain: a.nama.split(" ").slice(0, 2).join(" "),
+      capaian: capaianSkala5,
+      target: TARGET_NASIONAL,
+    };
+  });
 
   const pieData = [
     { name: "Terverifikasi", value: stats.verified, color: "#3B82F6" },

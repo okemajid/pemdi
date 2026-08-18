@@ -1,6 +1,12 @@
-const { query } = require("./lib/db");
+import { query } from "./lib/db.js";
+
 async function run() {
-  const rows = await query("SELECT id, bobot FROM kriteria WHERE indikator_id = 'i19'");
-  console.log(rows);
+  try {
+    const res = await query("DESCRIBE surat_template");
+    console.log(res);
+  } catch (err) {
+    console.error(err);
+  }
+  process.exit(0);
 }
 run();
