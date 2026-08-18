@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen, FileText, Download, CheckCircle2, Eye, LayoutTemplate, TrendingUp } from "lucide-react";
+import { ClipboardList, Upload, BarChart3, Shield, ShieldCheck, ArrowRight, BookOpen, FileText, Download, CheckCircle2, Eye, LayoutTemplate, TrendingUp, X } from "lucide-react";
 import { Page, Kematangan, SuratTemplate } from "@/lib/types";
 import { MATURITY_COLORS, MATURITY_LABELS } from "@/lib/mock-data";
 import {
@@ -109,6 +109,7 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
   const [templates, setTemplates] = useState<SuratTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [viewingTemplate, setViewingTemplate] = useState<SuratTemplate | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -496,14 +497,20 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-5 relative z-10">
+                    <div className="mt-auto pt-5 relative z-10 flex gap-2">
+                      <button
+                        onClick={() => setViewingTemplate(tpl)}
+                        className="flex items-center justify-center gap-1.5 flex-1 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-xs font-semibold transition-colors"
+                      >
+                        <Eye size={14} /> Lihat
+                      </button>
                       <a
                         href={tpl.filePath}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl text-sm font-semibold transition-colors"
+                        className="flex items-center justify-center gap-1.5 flex-1 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-semibold transition-colors"
                       >
-                        <Download size={16} /> Unduh
+                        <Download size={14} /> Unduh
                       </a>
                     </div>
                   </div>
@@ -542,6 +549,80 @@ export function LandingPage({ setPage }: { setPage: (p: Page) => void }) {
           </div>
         </div>
       </footer>
+
+      {viewingTemplate && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setViewingTemplate(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl h-[95vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2E5BA8 100%)" }}>
+              <div className="flex items-center gap-3 text-white">
+                <h3 className="font-bold text-sm tracking-wide">Lihat Template Surat</h3>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold border border-white/20">
+                  {viewingTemplate.tipeDokumen}
+                </span>
+              </div>
+              <button onClick={() => setViewingTemplate(null)} className="text-white/60 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"><X size={18} /></button>
+            </div>
+
+            <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+              <div className="flex-1 bg-gray-100 border-r border-gray-200 overflow-hidden relative min-h-[500px]">
+                {viewingTemplate.filePath ? (
+                  viewingTemplate.filePath.toLowerCase().endsWith('.pdf') ? (
+                    <iframe src={viewingTemplate.filePath} className="w-full h-full border-0 absolute inset-0" title="Dokumen Template"></iframe>
+                  ) : viewingTemplate.filePath.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                    <img src={viewingTemplate.filePath} className="w-full h-full object-contain absolute inset-0" alt="Dokumen Template" />
+                  ) : viewingTemplate.filePath.match(/\.(doc|docx|xls|xlsx)$/i) ? (
+                    <iframe 
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent((typeof window !== 'undefined' ? window.location.origin : '') + viewingTemplate.filePath)}`} 
+                      className="w-full h-full border-0 absolute inset-0 bg-white" 
+                      title="Dokumen Template"
+                    ></iframe>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-gray-50 p-6 text-center absolute inset-0">
+                      <FileText size={64} className="text-gray-300 mb-4" />
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Pratinjau Tidak Tersedia</p>
+                      <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-6">
+                        File dengan format ini tidak dapat ditampilkan langsung di browser.
+                      </p>
+                      <a
+                        href={viewingTemplate.filePath}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                      >
+                        <Download size={16} /> Unduh File Sekarang
+                      </a>
+                    </div>
+                  )
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400 absolute inset-0">File tidak tersedia</div>
+                )}
+              </div>
+              <div className="w-full md:w-80 bg-white p-6 flex flex-col overflow-y-auto">
+                <h4 className="text-[11px] font-extrabold text-gray-500 uppercase tracking-widest mb-4">Informasi Template</h4>
+
+                <div className="space-y-5 flex-1">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900 mb-1 leading-snug">{viewingTemplate.nama}</p>
+                    <p className="text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100 leading-relaxed">{viewingTemplate.deskripsi}</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-5 border-t border-gray-100">
+                  <a
+                    href={viewingTemplate.filePath}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl p-2.5 transition-all font-bold flex items-center justify-center gap-2 text-xs shadow-sm"
+                  >
+                    <Download size={14} /> Unduh Template
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

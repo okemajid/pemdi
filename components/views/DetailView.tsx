@@ -332,7 +332,24 @@ export function DetailView({ indikator, currentUser }: { indikator: Indikator | 
             <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
               <div className="flex-1 bg-gray-100 border-r border-gray-200 overflow-hidden relative min-h-[500px]">
                 {viewingKriteria.file ? (
-                  <iframe src={viewingKriteria.file} className="w-full h-full border-0 absolute inset-0" title="Dokumen Kriteria"></iframe>
+                  viewingKriteria.file.toLowerCase().endsWith('.pdf') ? (
+                    <iframe src={viewingKriteria.file} className="w-full h-full border-0 absolute inset-0" title="Dokumen Kriteria"></iframe>
+                  ) : viewingKriteria.file.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                    <img src={viewingKriteria.file} className="w-full h-full object-contain absolute inset-0" alt="Dokumen Kriteria" />
+                  ) : viewingKriteria.file.match(/\.(doc|docx|xls|xlsx)$/i) ? (
+                    <iframe 
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent((typeof window !== 'undefined' ? window.location.origin : '') + viewingKriteria.file)}`} 
+                      className="w-full h-full border-0 absolute inset-0 bg-white" 
+                      title="Dokumen Kriteria"
+                    ></iframe>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-gray-50 p-6 text-center absolute inset-0">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Pratinjau Tidak Tersedia</p>
+                      <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-6">
+                        File dengan format ini tidak dapat ditampilkan langsung di browser.
+                      </p>
+                    </div>
+                  )
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-400">File tidak tersedia</div>
                 )}
