@@ -338,7 +338,7 @@ export function DetailView({ indikator, currentUser }: { indikator: Indikator | 
                     <img src={viewingKriteria.file} className="w-full h-full object-contain absolute inset-0" alt="Dokumen Kriteria" />
                   ) : viewingKriteria.file.match(/\.(doc|docx|xls|xlsx)$/i) ? (
                     <iframe 
-                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent((typeof window !== 'undefined' ? window.location.origin : '') + viewingKriteria.file)}`} 
+                      src={`/api/preview?file=${encodeURIComponent(viewingKriteria.file)}`} 
                       className="w-full h-full border-0 absolute inset-0 bg-white" 
                       title="Dokumen Kriteria"
                     ></iframe>

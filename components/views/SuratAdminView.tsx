@@ -226,7 +226,6 @@ export function SuratAdminView() {
                         </div>
                         <div>
                           <div className="font-semibold text-gray-900">{template.nama}</div>
-                          <div className="text-xs text-gray-500 truncate w-48" title={template.filePath}>{template.filePath}</div>
                         </div>
                       </div>
                     </td>
@@ -247,15 +246,28 @@ export function SuratAdminView() {
                         >
                           <Eye size={18} />
                         </button>
-                        <a 
-                          href={template.filePath}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            fetch(template.filePath)
+                              .then(res => res.blob())
+                              .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${template.nama.replace(/\s+/g, '_')}.docx`;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                window.URL.revokeObjectURL(url);
+                              })
+                              .catch(err => alert("Gagal mengunduh file."));
+                          }}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
                           title="Unduh"
                         >
                           <Download size={18} />
-                        </a>
+                        </button>
                         <button 
                           onClick={() => handleOpenModal(template)}
                           className="p-1.5 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
@@ -403,7 +415,7 @@ export function SuratAdminView() {
                     <img src={viewingTemplate.filePath} className="w-full h-full object-contain absolute inset-0" alt="Dokumen Template" />
                   ) : viewingTemplate.filePath.match(/\.(doc|docx|xls|xlsx)$/i) ? (
                     <iframe 
-                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent((typeof window !== 'undefined' ? window.location.origin : '') + viewingTemplate.filePath)}`} 
+                      src={`/api/preview?file=${encodeURIComponent(viewingTemplate.filePath)}`} 
                       className="w-full h-full border-0 absolute inset-0 bg-white" 
                       title="Dokumen Template"
                     ></iframe>
@@ -414,14 +426,27 @@ export function SuratAdminView() {
                       <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-6">
                         File dengan format ini tidak dapat ditampilkan langsung di browser.
                       </p>
-                      <a
-                        href={viewingTemplate.filePath}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          fetch(viewingTemplate.filePath)
+                            .then(res => res.blob())
+                            .then(blob => {
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `${viewingTemplate.nama.replace(/\s+/g, '_')}.docx`;
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              window.URL.revokeObjectURL(url);
+                            })
+                            .catch(err => alert("Gagal mengunduh file."));
+                        }}
+                        className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
                       >
                         <Download size={16} /> Unduh File Sekarang
-                      </a>
+                      </button>
                     </div>
                   )
                 ) : (
@@ -439,14 +464,27 @@ export function SuratAdminView() {
                 </div>
 
                 <div className="mt-6 pt-5 border-t border-gray-100">
-                  <a
-                    href={viewingTemplate.filePath}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl p-2.5 transition-all font-bold flex items-center justify-center gap-2 text-xs shadow-sm"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      fetch(viewingTemplate.filePath)
+                        .then(res => res.blob())
+                        .then(blob => {
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${viewingTemplate.nama.replace(/\s+/g, '_')}.docx`;
+                          document.body.appendChild(a);
+                          a.click();
+                          a.remove();
+                          window.URL.revokeObjectURL(url);
+                        })
+                        .catch(err => alert("Gagal mengunduh file."));
+                    }}
+                    className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl p-2.5 transition-all font-bold flex items-center justify-center gap-2 text-xs shadow-sm cursor-pointer"
                   >
                     <Download size={14} /> Unduh Template
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

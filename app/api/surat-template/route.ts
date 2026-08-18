@@ -33,7 +33,21 @@ export async function GET(req: NextRequest) {
     sql += " ORDER BY st.created_at DESC";
 
     const rows = await query(sql, values);
-    return NextResponse.json({ success: true, data: rows });
+    const mappedRows = rows.map((row: any) => ({
+      id: row.id,
+      indikatorId: row.indikator_id,
+      kriteriaLevel: row.kriteria_level,
+      nama: row.nama,
+      deskripsi: row.deskripsi,
+      filePath: row.file_path,
+      tipeDokumen: row.tipe_dokumen,
+      uploadedBy: row.uploaded_by,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      indikatorNo: row.indikator_no,
+      indikatorNama: row.indikator_nama
+    }));
+    return NextResponse.json({ success: true, data: mappedRows });
   } catch (error) {
     console.error("Error fetching surat templates:", error);
     return NextResponse.json({ error: "Failed to fetch templates" }, { status: 500 });
